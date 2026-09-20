@@ -1,88 +1,84 @@
 import Link from "next/link";
-import { ArrowRight, Compass, Map, Sparkles, Users } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { SiteHeader } from "@/components/layout/site-header";
-import { getUser } from "@/lib/supabase/server";
-import { publicEnv } from "@/lib/env";
+import { NewsFeed } from "@/components/news/news-feed";
+import { OrbitScene } from "@/components/shared/orbit-scene";
 import { NotConfigured } from "@/components/shared/not-configured";
+import { publicEnv } from "@/lib/env";
+import { getUser } from "@/lib/supabase/server";
 
-const FEATURES = [
-  {
-    icon: Map,
-    title: "AI Research Roadmap",
-    text: "Turn a project idea into an editable plan: question, hypothesis, literature, methods, analysis, results.",
-  },
-  {
-    icon: Users,
-    title: "AI Match",
-    text: "Find collaborators and mentors whose fields, skills and experience fit your project — with an explanation why.",
-  },
-  {
-    icon: Sparkles,
-    title: "AI Research Assistant",
-    text: "Summarize, explain, review structure and suggest improvements for your research notes.",
-  },
-  {
-    icon: Compass,
-    title: "Discover",
-    text: "Search projects and researchers by field and skills, follow science news, and grow your team.",
-  },
-];
+export const revalidate = 1800;
 
-export default async function HomePage() {
+const STATS = [
+  ["Active researchers", "12,480"],
+  ["Research projects", "3,210"],
+  ["Universities & institutions", "864"],
+  ["Collaboration requests", "5,680"],
+] as const;
+
+export default async function HomePage({ searchParams }: { searchParams: Promise<{ category?: string }> }) {
   if (!publicEnv.supabaseConfigured) return <NotConfigured />;
-  const user = await getUser();
+  const [{ category = "All" }, user] = await Promise.all([searchParams, getUser()]);
 
   return (
     <>
       <SiteHeader signedIn={Boolean(user)} />
       <main className="flex-1">
-        <section className="mx-auto max-w-6xl px-4 py-20 text-center sm:px-6 sm:py-28">
-          <p className="mb-4 inline-flex items-center gap-2 rounded-full border bg-accent px-3 py-1 text-xs font-medium text-accent-foreground">
-            <Sparkles className="size-3.5" />
-            GitHub for science, with AI built in
-          </p>
-          <h1 className="mx-auto max-w-3xl text-4xl font-semibold tracking-tight sm:text-5xl">
-            Plan, share and improve research together
-          </h1>
-          <p className="mx-auto mt-5 max-w-2xl text-lg text-muted-foreground">
-            Asterra is a collaboration platform where students, researchers and mentors create research projects,
-            find the right people and use AI to plan and refine their work.
-          </p>
-          <div className="mt-8 flex flex-wrap justify-center gap-3">
-            <Button asChild size="lg">
-              <Link href={user ? "/dashboard" : "/register"}>
-                {user ? "Open dashboard" : "Create an account"}
-                <ArrowRight />
-              </Link>
-            </Button>
-            <Button asChild size="lg" variant="outline">
-              <Link href={user ? "/projects" : "/login"}>{user ? "Browse projects" : "Sign in"}</Link>
-            </Button>
+        {/* Compact hero: the news feed is the first thing on the page, the hero stays short. */}
+        <section className="mx-auto grid max-w-6xl items-center gap-8 px-4 pb-6 pt-10 sm:px-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] lg:pt-14">
+          <div className="anim-rise">
+            <p className="eyebrow eyebrow-accent mb-4">
+              Science <span className="mx-1 text-border">/</span> Collaboration <span className="mx-1 text-border">/</span> Impact
+            </p>
+            <h1 className="display text-5xl sm:text-6xl lg:text-7xl">
+              Where research becomes <em>momentum.</em>
+            </h1>
+            <p className="reading mt-5 max-w-lg text-muted-foreground">
+              Asterra is a collaborative platform for researchers, students and mentors. Find your team, explore
+              projects, and turn ideas into real research.
+            </p>
+            <div className="mt-7 flex flex-wrap gap-3">
+              <Button asChild size="lg">
+                <Link href={user ? "/projects" : "/register"}>
+                  {user ? "Explore projects" : "Join the community"}
+                  <ArrowRight data-icon="inline-end" />
+                </Link>
+              </Button>
+              <Button asChild size="lg" variant="outline">
+                <Link href={user ? "/dashboard" : "/projects"}>{user ? "Open dashboard" : "Explore projects"}</Link>
+              </Button>
+            </div>
           </div>
+          <OrbitScene className="mx-auto hidden max-w-[440px] lg:block" />
         </section>
 
-        <section className="mx-auto max-w-6xl px-4 pb-24 sm:px-6">
-          <div className="grid gap-4 sm:grid-cols-2">
-            {FEATURES.map(({ icon: Icon, title, text }) => (
-              <Card key={title}>
-                <CardContent className="flex gap-4">
-                  <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                    <Icon className="size-5" />
-                  </div>
-                  <div>
-                    <h2 className="font-semibold">{title}</h2>
-                    <p className="mt-1 text-sm text-muted-foreground">{text}</p>
-                  </div>
-                </CardContent>
-              </Card>
+        <section className="hairline mx-auto max-w-6xl px-4 sm:px-6">
+          <dl className="grid grid-cols-2 gap-x-6 gap-y-6 py-6 md:grid-cols-4">
+            {STATS.map(([label, value]) => (
+              <div key={label} className="border-l pl-4">
+                <dd className="display text-3xl">{value}</dd>
+                <dt className="mt-1 text-xs text-muted-foreground">{label}</dt>
+              </div>
             ))}
+          </dl>
+        </section>
+
+        <section className="mx-auto max-w-6xl px-4 pb-20 pt-6 sm:px-6">
+          <div className="mb-6 flex items-end justify-between">
+            <div>
+              <p className="eyebrow mb-2">Today in science</p>
+              <h2 className="display text-4xl">Latest news</h2>
+            </div>
           </div>
+          <NewsFeed category={category} basePath="/" />
         </section>
       </main>
-      <footer className="border-t py-6 text-center text-xs text-muted-foreground">
-        Asterra — student demonstration project. AI output is assistance, not scientific validation.
+      <footer className="border-t py-8">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 text-xs text-muted-foreground sm:px-6">
+          <p>Asterra — student demonstration project.</p>
+          <p className="eyebrow">AI output is assistance, not scientific validation</p>
+        </div>
       </footer>
     </>
   );

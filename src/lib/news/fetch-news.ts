@@ -1,19 +1,20 @@
 import "server-only";
+import { unstable_cache } from "next/cache";
 import Parser from "rss-parser";
 import { serverEnv } from "@/lib/env";
 import { FALLBACK_NEWS } from "./fallback-news";
 import type { NewsArticle } from "./types";
 
-const parser = new Parser({ timeout: 8000 });
+const parser = new Parser({ timeout: 5000, headers: { "User-Agent": "Mozilla/5.0 (compatible; Asterra/1.0)" } });
 
 /** Very small keyword classifier so RSS items land in our demo categories. */
 const CATEGORY_KEYWORDS: [string, RegExp][] = [
-  ["Astronomy", /\b(space|planet|galaxy|telescope|nasa|star|asteroid|orbit|cosmic|mars|moon)\b/i],
-  ["Physics", /\b(quantum|particle|physic|laser|magnet|superconduct|photon|gravity)\b/i],
-  ["Chemistry", /\b(chemi|molecule|catalyst|polymer|enzyme|compound|battery)\b/i],
-  ["Biology", /\b(cell|gene|dna|protein|bacteria|species|brain|neuro|evolution|animal|plant)\b/i],
-  ["Environmental Science", /\b(climate|ocean|carbon|pollution|ecosystem|forest|coral|emission|weather|reef)\b/i],
-  ["Computer Science", /\b(ai|artificial intelligence|machine learning|algorithm|robot|software|computer|data)\b/i],
+  ["Astronomy", /(space|planet|galaxy|telescope|nasa|star|asteroid|comet|orbit|cosmic|mars|moon|rings?|solar|lunar|rocket|satellite)/i],
+  ["Physics", /(quantum|particle|physic|laser|magnet|superconduct|photon|gravity|fusion|reactor|collider)/i],
+  ["Chemistry", /(chemi|molecule|catalyst|polymer|enzyme|compound|battery|plastic|material)/i],
+  ["Biology", /(cell|gene|dna|protein|bacteria|species|brain|neuro|evolution|animal|plant|fossil|dinosaur|rex|virus|vaccine|disease|cancer|sleep|health|medical|drug)/i],
+  ["Environmental Science", /(climate|ocean|carbon|pollution|ecosystem|forest|coral|emission|weather|reef|wildfire|drought|flood|energy)/i],
+  ["Computer Science", /(ai|artificial intelligence|machine learning|algorithm|robot|software|computer|data|chip|internet|app)/i],
 ];
 
 function classify(text: string): string {
@@ -96,7 +97,7 @@ async function fetchNewsApi(apiKey: string): Promise<NewsArticle[]> {
  * Fetches NewsAPI (if a key is set) and all configured RSS feeds. Never throws:
  * if nothing is configured or every source fails, returns seeded fallback articles.
  */
-export async function getNews(): Promise<{ articles: NewsArticle[]; live: boolean }> {
+async function fetchAllNews(): Promise<{ articles: NewsArticle[]; live: boolean }> {
   const urls = serverEnv.newsFeedUrls;
   const apiKey = serverEnv.newsApiKey;
   if (urls.length === 0 && !apiKey) return { articles: FALLBACK_NEWS, live: false };
@@ -115,3 +116,6 @@ export async function getNews(): Promise<{ articles: NewsArticle[]; live: boolea
   if (articles.length === 0) return { articles: FALLBACK_NEWS, live: false };
   return { articles, live: true };
 }
+
+/** Cached for 30 minutes so every page/request shares one fetch of the feeds. */
+export const getNews = unstable_cache(fetchAllNews, ["science-news"], { revalidate: 1800 });

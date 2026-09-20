@@ -102,6 +102,34 @@ type NotificationRow = {
   created_at: string;
 };
 
+export type ConnectionStatus = "pending" | "accepted";
+export type JoinRequestStatus = "pending" | "accepted" | "declined";
+
+type ConnectionRow = {
+  id: string;
+  requester_id: string;
+  addressee_id: string;
+  status: ConnectionStatus;
+  created_at: string;
+  responded_at: string | null;
+};
+
+type JoinRequestRow = {
+  id: string;
+  project_id: string;
+  user_id: string;
+  message: string;
+  status: JoinRequestStatus;
+  created_at: string;
+  responded_at: string | null;
+};
+
+type BookmarkRow = {
+  user_id: string;
+  project_id: string;
+  created_at: string;
+};
+
 /** Makes generated/defaulted columns optional for inserts. */
 type Insertable<Row, Generated extends keyof Row> = Omit<Row, Generated> & Partial<Pick<Row, Generated>>;
 
@@ -165,6 +193,12 @@ export type Database = {
         Insertable<NewsItemRow, "id" | "summary" | "source" | "category" | "image_url" | "published_at">
       >;
       notifications: Table<NotificationRow, Insertable<NotificationRow, "id" | "payload" | "read_at" | "created_at">>;
+      connections: Table<ConnectionRow, Insertable<ConnectionRow, "id" | "status" | "created_at" | "responded_at">>;
+      project_join_requests: Table<
+        JoinRequestRow,
+        Insertable<JoinRequestRow, "id" | "message" | "status" | "created_at" | "responded_at">
+      >;
+      bookmarks: Table<BookmarkRow, Insertable<BookmarkRow, "created_at">>;
     };
     Views: Record<string, never>;
     Functions: {
@@ -177,6 +211,8 @@ export type Database = {
       project_visibility: ProjectVisibility;
       member_role: MemberRole;
       roadmap_status: RoadmapStatus;
+      connection_status: ConnectionStatus;
+      join_request_status: JoinRequestStatus;
     };
     CompositeTypes: Record<string, never>;
   };

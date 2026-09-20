@@ -8,6 +8,22 @@ export type {
   RoadmapStatus,
 } from "./database";
 
+export type { ConnectionStatus, JoinRequestStatus } from "./database";
+
+export type Connection = Tables<"connections">;
+export type JoinRequest = Tables<"project_join_requests">;
+export type Bookmark = Tables<"bookmarks">;
+
+/** How the current user relates to another profile (drives the Connect button). */
+export type ConnectionState =
+  | { kind: "none" }
+  | { kind: "self" }
+  | { kind: "outgoing"; id: string }
+  | { kind: "incoming"; id: string }
+  | { kind: "connected"; id: string };
+
+export type ProfileLite = Pick<Profile, "id" | "full_name" | "avatar_url" | "organization" | "role">;
+
 export type Profile = Tables<"profiles">;
 export type Project = Tables<"projects">;
 export type ProjectMember = Tables<"project_members">;

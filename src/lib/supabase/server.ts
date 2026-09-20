@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import { publicEnv } from "@/lib/env";
 import type { Database } from "@/types/database";
 
@@ -32,5 +33,12 @@ export async function getUser() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  return user;
+}
+
+/** Like getUser(), but redirects to /login when there is no session. Use in pages under (app). */
+export async function requireUser() {
+  const user = await getUser();
+  if (!user) redirect("/login");
   return user;
 }

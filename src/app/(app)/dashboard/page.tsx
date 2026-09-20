@@ -1,31 +1,40 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { FolderKanban, Plus, Users } from "lucide-react";
+import { ArrowRight, FolderKanban, Plus, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
 import { ProjectCard } from "@/components/project/project-card";
-import { getUser } from "@/lib/supabase/server";
+import { requireUser } from "@/lib/supabase/server";
 import { getProfile } from "@/lib/supabase/queries/profiles";
 import { getMyProjects, searchProjects } from "@/lib/supabase/queries/projects";
+import { getBookmarkedIds, getMyConnections } from "@/lib/supabase/queries/social";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
 export default async function DashboardPage() {
-  const user = (await getUser())!;
-  const [profile, mine, recent] = await Promise.all([
+  const user = await requireUser();
+  const [profile, mine, recent, bookmarked, connections] = await Promise.all([
     getProfile(user.id),
     getMyProjects(user.id),
     searchProjects({}, 6),
+    getBookmarkedIds(user.id),
+    getMyConnections(user.id),
   ]);
   const others = recent.filter((p) => !mine.some((m) => m.id === p.id));
   const profileIncomplete = profile && profile.research_fields.length === 0 && profile.skills.length === 0;
+  const firstName = profile?.full_name?.split(" ")[0] || "researcher";
 
   return (
     <>
       <PageHeader
-        title={`Hello, ${profile?.full_name?.split(" ")[0] || "researcher"}`}
-        description="Your projects and what is happening on the platform."
+        eyebrow="Dashboard"
+        title={
+          <>
+            Hello, <em>{firstName}.</em>
+          </>
+        }
+        description="Your projects, your network and what is new on Asterra."
         actions={
           <Button asChild>
             <Link href="/projects/new">
@@ -36,25 +45,37 @@ export default async function DashboardPage() {
         }
       />
 
+      <dl className="mb-10 grid grid-cols-2 gap-6 md:grid-cols-4">
+        {[
+          ["Projects", mine.length, "/projects"],
+          ["Connections", connections.accepted.length, "/connections"],
+          ["Requests", connections.incoming.length, "/connections"],
+          ["Saved", bookmarked.size, "/bookmarks"],
+        ].map(([label, value, href]) => (
+          <Link key={label} href={href as string} className="border-l pl-4 transition-colors hover:border-primary">
+            <dd className="display text-3xl">{value}</dd>
+            <dt className="mt-1 text-xs text-muted-foreground">{label}</dt>
+          </Link>
+        ))}
+      </dl>
+
       {profileIncomplete && (
-        <div className="mb-6 flex flex-col gap-3 rounded-xl border bg-accent/60 p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mb-10 flex flex-col gap-3 rounded-xl border border-primary/30 bg-card p-5 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="font-medium">Complete your researcher profile</p>
-            <p className="text-sm text-muted-foreground">
-              Add research fields and skills so AI Match can recommend you to projects.
-            </p>
+            <p className="text-sm text-muted-foreground">Add research fields and skills so AI Match can recommend you to projects.</p>
           </div>
           <Button asChild variant="outline" size="sm">
             <Link href="/profile">
-              <Users />
+              <UserRound />
               Edit profile
             </Link>
           </Button>
         </div>
       )}
 
-      <section className="mb-10">
-        <h2 className="mb-3 text-lg font-semibold">My projects</h2>
+      <section className="mb-12">
+        <p className="eyebrow mb-3">My projects · {mine.length}</p>
         {mine.length === 0 ? (
           <EmptyState
             icon={FolderKanban}
@@ -72,7 +93,7 @@ export default async function DashboardPage() {
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {mine.map((p) => (
-              <ProjectCard key={p.id} project={p} />
+              <ProjectCard key={p.id} project={p} bookmarked={bookmarked.has(p.id)} />
             ))}
           </div>
         )}
@@ -81,14 +102,17 @@ export default async function DashboardPage() {
       {others.length > 0 && (
         <section>
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-lg font-semibold">Recently updated on Asterra</h2>
+            <p className="eyebrow">Recently updated on Asterra</p>
             <Button asChild variant="ghost" size="sm">
-              <Link href="/projects">Browse all</Link>
+              <Link href="/projects">
+                Browse all
+                <ArrowRight data-icon="inline-end" />
+              </Link>
             </Button>
           </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {others.map((p) => (
-              <ProjectCard key={p.id} project={p} />
+              <ProjectCard key={p.id} project={p} bookmarked={bookmarked.has(p.id)} />
             ))}
           </div>
         </section>

@@ -6,7 +6,9 @@ import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
 import { SearchFilterBar } from "@/components/shared/search-filter-bar";
 import { ProjectCard } from "@/components/project/project-card";
+import { requireUser } from "@/lib/supabase/server";
 import { searchProjects } from "@/lib/supabase/queries/projects";
+import { getBookmarkedIds } from "@/lib/supabase/queries/social";
 import { PROJECT_STATUS_LABELS, RESEARCH_FIELDS } from "@/types";
 
 export const metadata: Metadata = { title: "Projects" };
@@ -14,15 +16,16 @@ export const metadata: Metadata = { title: "Projects" };
 type Search = { q?: string; field?: string; status?: string; skill?: string };
 
 export default async function ProjectsPage({ searchParams }: { searchParams: Promise<Search> }) {
-  const filters = await searchParams;
-  const projects = await searchProjects(filters);
+  const [filters, user] = await Promise.all([searchParams, requireUser()]);
+  const [projects, bookmarked] = await Promise.all([searchProjects(filters), getBookmarkedIds(user.id)]);
   const hasFilters = Boolean(filters.q || filters.field || filters.status || filters.skill);
 
   return (
     <>
       <PageHeader
-        title="Discover projects"
-        description="Find research projects by topic, field or required skills."
+        eyebrow="Explore"
+        title="Research projects"
+        description="Find projects by topic, field or required skills. Save the ones you like or ask to join."
         actions={
           <Button asChild>
             <Link href="/projects/new">
@@ -37,12 +40,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
         q={filters.q}
         placeholder="Search by title, description or research question"
         selects={[
-          {
-            name: "field",
-            placeholder: "All fields",
-            value: filters.field,
-            options: RESEARCH_FIELDS.map((f) => ({ value: f, label: f })),
-          },
+          { name: "field", placeholder: "All fields", value: filters.field, options: RESEARCH_FIELDS.map((f) => ({ value: f, label: f })) },
           {
             name: "status",
             placeholder: "Any status",
@@ -74,7 +72,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {projects.map((p) => (
-            <ProjectCard key={p.id} project={p} />
+            <ProjectCard key={p.id} project={p} bookmarked={bookmarked.has(p.id)} />
           ))}
         </div>
       )}
