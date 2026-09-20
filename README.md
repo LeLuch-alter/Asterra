@@ -21,9 +21,9 @@ npm run dev                  # http://localhost:3000
 |---|---|---|
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase → Project Settings → API → Project URL | yes |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase → Project Settings → API → anon public key | yes |
-| `AI_PROVIDER` | `gemini` (default) or `openai` | no |
-| `AI_API_KEY` | Google AI Studio or OpenAI dashboard | for AI features |
-| `AI_MODEL` | e.g. `gemini-3.6-flash`, `gpt-4o-mini` | no |
+| `AI_PROVIDER` | `gemini` (default), `openai` or `grok` (xAI) | no |
+| `AI_API_KEY` | Google AI Studio, OpenAI or console.x.ai | for AI features |
+| `AI_MODEL` | e.g. `gemini-3.6-flash`, `gpt-4o-mini`, `grok-4-fast` (per-provider default if empty) | no |
 | `NEWS_API_KEY` | newsapi.org (free tier, ~100 req/day) | no |
 | `NEWS_FEED_URLS` | comma-separated RSS feeds; nothing configured = demo news | no |
 | `NEXT_PUBLIC_SITE_URL` | `http://localhost:3000` locally, your Vercel URL in prod | no |

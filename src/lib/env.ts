@@ -37,18 +37,24 @@ export const publicEnv = {
   },
 };
 
-export type AiProviderName = "gemini" | "openai";
+export type AiProviderName = "gemini" | "openai" | "grok";
 
 /** AI_API_KEY is canonical; provider-specific names are accepted as a convenience. */
 function rawAiKey(): string | undefined {
-  return process.env.AI_API_KEY || process.env.GEMINI_API_KEY || process.env.OPENAI_API_KEY || undefined;
+  return process.env.AI_API_KEY || process.env.GEMINI_API_KEY || process.env.OPENAI_API_KEY || process.env.XAI_API_KEY || undefined;
 }
+
+const DEFAULT_MODELS: Record<AiProviderName, string> = {
+  gemini: "gemini-3.6-flash",
+  openai: "gpt-4o-mini",
+  grok: "grok-4-fast",
+};
 
 export const serverEnv = {
   get aiProvider(): AiProviderName {
     const value = process.env.AI_PROVIDER ?? "gemini";
-    if (value !== "gemini" && value !== "openai") {
-      throw new Error(`AI_PROVIDER must be "gemini" or "openai", got "${value}"`);
+    if (value !== "gemini" && value !== "openai" && value !== "grok") {
+      throw new Error(`AI_PROVIDER must be "gemini", "openai" or "grok", got "${value}"`);
     }
     return value;
   },
@@ -56,7 +62,7 @@ export const serverEnv = {
     return required("AI_API_KEY", rawAiKey());
   },
   get aiModel() {
-    return process.env.AI_MODEL ?? (this.aiProvider === "gemini" ? "gemini-3.6-flash" : "gpt-4o-mini");
+    return process.env.AI_MODEL || DEFAULT_MODELS[this.aiProvider];
   },
   /** True when an AI key is configured; used to show a friendly "not configured" state instead of crashing. */
   get aiConfigured() {

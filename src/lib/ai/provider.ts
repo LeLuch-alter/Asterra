@@ -2,7 +2,7 @@ import "server-only";
 import type { ZodType } from "zod";
 import { serverEnv } from "@/lib/env";
 import { GeminiProvider } from "./providers/gemini";
-import { OpenAiProvider } from "./providers/openai";
+import { GrokProvider, OpenAiProvider } from "./providers/openai";
 
 export type GenerateJsonOptions<T> = {
   /** Who the model is and the rules it must follow. */
@@ -36,10 +36,16 @@ export function getAiProvider(): AiProvider {
   if (!serverEnv.aiConfigured) {
     throw new AiError("AI is not configured. Set AI_API_KEY in .env.local.", "not_configured");
   }
-  cached =
-    serverEnv.aiProvider === "openai"
-      ? new OpenAiProvider(serverEnv.aiApiKey, serverEnv.aiModel)
-      : new GeminiProvider(serverEnv.aiApiKey, serverEnv.aiModel);
+  switch (serverEnv.aiProvider) {
+    case "openai":
+      cached = new OpenAiProvider(serverEnv.aiApiKey, serverEnv.aiModel);
+      break;
+    case "grok":
+      cached = new GrokProvider(serverEnv.aiApiKey, serverEnv.aiModel);
+      break;
+    default:
+      cached = new GeminiProvider(serverEnv.aiApiKey, serverEnv.aiModel);
+  }
   return cached;
 }
 

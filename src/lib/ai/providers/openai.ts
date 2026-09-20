@@ -1,14 +1,19 @@
 import type { AiProvider } from "../provider";
 
-/** Minimal OpenAI Chat Completions client (JSON mode) — no SDK dependency needed. */
-export class OpenAiProvider implements AiProvider {
+/**
+ * Minimal Chat Completions client (JSON mode) — no SDK dependency.
+ * Works with OpenAI and with OpenAI-compatible APIs such as xAI Grok.
+ */
+export class OpenAiCompatibleProvider implements AiProvider {
   constructor(
     private apiKey: string,
     private model: string,
+    private baseUrl: string,
+    private label: string,
   ) {}
 
   async generateText({ system, prompt }: { system: string; prompt: string }): Promise<string> {
-    const res = await fetch("https://api.openai.com/v1/chat/completions", {
+    const res = await fetch(`${this.baseUrl}/chat/completions`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -26,11 +31,25 @@ export class OpenAiProvider implements AiProvider {
     });
 
     if (!res.ok) {
-      throw new Error(`OpenAI request failed (${res.status})`);
+      const body = await res.text().catch(() => "");
+      const detail = body.match(/"message"\s*:\s*"([^"]{0,160})/)?.[1];
+      throw new Error(`${this.label} request failed (${res.status})${detail ? `: ${detail}` : ""}`);
     }
     const data = (await res.json()) as { choices?: { message?: { content?: string } }[] };
     const text = data.choices?.[0]?.message?.content;
-    if (!text) throw new Error("Empty response from OpenAI");
+    if (!text) throw new Error(`Empty response from ${this.label}`);
     return text;
+  }
+}
+
+export class OpenAiProvider extends OpenAiCompatibleProvider {
+  constructor(apiKey: string, model: string) {
+    super(apiKey, model, "https://api.openai.com/v1", "OpenAI");
+  }
+}
+
+export class GrokProvider extends OpenAiCompatibleProvider {
+  constructor(apiKey: string, model: string) {
+    super(apiKey, model, "https://api.x.ai/v1", "Grok");
   }
 }
