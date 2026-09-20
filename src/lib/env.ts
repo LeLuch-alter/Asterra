@@ -15,6 +15,13 @@ function required(name: string, value: string | undefined): string {
 }
 
 export const publicEnv = {
+  /** False when Supabase vars are missing (e.g. a fresh Vercel deploy without env vars). */
+  get supabaseConfigured() {
+    return Boolean(
+      process.env.NEXT_PUBLIC_SUPABASE_URL &&
+        (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY),
+    );
+  },
   get siteUrl() {
     return process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
   },

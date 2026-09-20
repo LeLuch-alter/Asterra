@@ -1,6 +1,9 @@
 import { Logo } from "@/components/layout/logo";
+import { publicEnv } from "@/lib/env";
+import { NotConfigured } from "@/components/shared/not-configured";
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
+  if (!publicEnv.supabaseConfigured) return <NotConfigured />;
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-muted/40 px-4 py-10">
       <Logo className="mb-8" />

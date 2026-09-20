@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { SiteHeader } from "@/components/layout/site-header";
 import { getUser } from "@/lib/supabase/server";
+import { publicEnv } from "@/lib/env";
+import { NotConfigured } from "@/components/shared/not-configured";
 
 const FEATURES = [
   {
@@ -29,6 +31,7 @@ const FEATURES = [
 ];
 
 export default async function HomePage() {
+  if (!publicEnv.supabaseConfigured) return <NotConfigured />;
   const user = await getUser();
 
   return (

@@ -1,10 +1,13 @@
 import { redirect } from "next/navigation";
 import { AppShell } from "@/components/layout/app-shell";
 import { getUser } from "@/lib/supabase/server";
+import { publicEnv } from "@/lib/env";
+import { NotConfigured } from "@/components/shared/not-configured";
 import { getProfile } from "@/lib/supabase/queries/profiles";
 import { getUnreadCount } from "@/lib/supabase/queries/notifications";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
+  if (!publicEnv.supabaseConfigured) return <NotConfigured />;
   const user = await getUser();
   if (!user) redirect("/login");
 
