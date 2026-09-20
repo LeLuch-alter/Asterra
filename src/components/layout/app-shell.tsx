@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { Plus } from "lucide-react";
+import { Bell, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { Profile } from "@/types";
 import { Logo } from "./logo";
 import { MobileNav } from "./mobile-nav";
 import { NavLinks } from "./nav-links";
+import { NotificationsLive } from "./notifications-live";
 import { SearchBox } from "./search-box";
 import { ThemeToggle } from "./theme-toggle";
 import { UserMenu } from "./user-menu";
@@ -22,6 +23,7 @@ type Props = {
 export function AppShell({ profile, email, badges, children }: Props) {
   return (
     <div className="flex min-h-screen">
+      <NotificationsLive userId={profile.id} />
       <aside className="hidden w-64 shrink-0 flex-col border-r bg-sidebar px-4 py-5 md:flex">
         <Logo href="/dashboard" className="mb-8 px-2" />
         <NavLinks badges={badges} />
@@ -45,6 +47,16 @@ export function AppShell({ profile, email, badges, children }: Props) {
             <Button asChild size="icon" variant="outline" className="md:hidden" aria-label="New project">
               <Link href="/projects/new">
                 <Plus />
+              </Link>
+            </Button>
+            <Button asChild variant="ghost" size="icon" className="relative" aria-label="Notifications">
+              <Link href="/notifications">
+                <Bell />
+                {(badges["/notifications"] ?? 0) > 0 && (
+                  <span className="absolute right-1.5 top-1.5 flex size-4 items-center justify-center rounded-full bg-primary font-mono text-[9px] font-semibold text-primary-foreground">
+                    {Math.min(badges["/notifications"] ?? 0, 9)}
+                  </span>
+                )}
               </Link>
             </Button>
             <ThemeToggle />

@@ -34,7 +34,7 @@ Without `AI_API_KEY` the app runs, and the AI buttons are disabled with a hint.
 
 1. Create a project at supabase.com.
 2. **Authentication → Providers → Email**: turn **off** "Confirm email" for a smooth demo (otherwise users must click a confirmation link).
-3. **SQL editor**: run `supabase/migrations/0001_init.sql`, then `supabase/migrations/0002_social.sql` (connections, join requests, bookmarks, avatar storage bucket).
+3. **SQL editor**: run `supabase/migrations/0001_init.sql`, then `supabase/migrations/0002_social.sql` (connections, join requests, bookmarks, avatar storage bucket), then `supabase/migrations/0003_invitations.sql` (project invitations + realtime notifications).
 4. **SQL editor**: run `supabase/seed.sql` for demo data. (If demo accounts were created with an older seed and login fails with "Database error querying schema", run `supabase/fix_demo_users.sql` once.) Demo accounts (password `demo1234`):
    - `aigerim@demo.asterra` — student, owner of the water-pollution project
    - `daniyar@demo.asterra` — hydrologist, mentor
@@ -65,7 +65,7 @@ npx tsc --noEmit
 - Auth, researcher profiles with avatar upload (Supabase Storage bucket `avatars`).
 - Projects: create / edit / archive, members and roles, research results, editable roadmap.
 - Discovery: project and researcher search with filters, global search (`/search`), saved projects (`/bookmarks`).
-- Social: connection requests between researchers (`/connections`), requests to join a project (owner accepts on the Team tab), notifications.
+- Social: connection requests between researchers (`/connections`); members join a project only with consent — the owner invites a connection (invitee accepts) or a person requests to join (owner accepts on the Team tab); realtime notifications with toasts.
 - AI: Research Roadmap, AI Match, Research Assistant — all server-side, provider behind `src/lib/ai/provider.ts`.
 
 ## 6. Demo flow

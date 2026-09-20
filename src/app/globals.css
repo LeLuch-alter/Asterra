@@ -145,6 +145,17 @@
   ::selection {
     background: color-mix(in oklch, var(--primary) 30%, transparent);
   }
+  /* Native <select> popups: Windows/Chrome ignore color-scheme for the option list
+     unless the options themselves carry colours. */
+  select {
+    color: var(--foreground);
+    background-color: var(--background);
+  }
+  option,
+  optgroup {
+    color: var(--popover-foreground);
+    background-color: var(--popover);
+  }
 }
 
 @layer components {

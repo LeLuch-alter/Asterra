@@ -1,21 +1,28 @@
 import Link from "next/link";
 import { Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { AddMemberDialog } from "@/components/project/add-member-dialog";
+import { InviteMemberDialog } from "@/components/project/invite-member-dialog";
 import { MemberList } from "@/components/project/member-list";
 import { JoinRequestsList } from "@/components/project/join-requests-list";
+import { PendingInvitationsList } from "@/components/project/pending-invitations-list";
 import { getProjectContext } from "@/lib/supabase/queries/project-context";
 import { getProjectMembers } from "@/lib/supabase/queries/projects";
-import { getPendingJoinRequests } from "@/lib/supabase/queries/social";
+import { getInvitableConnections, getPendingInvitationsForProject, getPendingJoinRequests } from "@/lib/supabase/queries/social";
 
 export default async function TeamPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const { user, isOwner, isMember } = await getProjectContext(id);
-  const [members, requests] = await Promise.all([getProjectMembers(id), isOwner ? getPendingJoinRequests(id) : Promise.resolve([])]);
+  const [members, requests, invitations, candidates] = await Promise.all([
+    getProjectMembers(id),
+    isOwner ? getPendingJoinRequests(id) : Promise.resolve([]),
+    isOwner ? getPendingInvitationsForProject(id) : Promise.resolve([]),
+    isOwner ? getInvitableConnections(user.id, id) : Promise.resolve([]),
+  ]);
 
   return (
     <div className="mx-auto max-w-3xl">
       {isOwner && <JoinRequestsList requests={requests} />}
+      {isOwner && <PendingInvitationsList invitations={invitations} projectId={id} />}
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <p className="eyebrow">
@@ -29,11 +36,16 @@ export default async function TeamPage({ params }: { params: Promise<{ id: strin
                 AI Match
               </Link>
             </Button>
-            <AddMemberDialog projectId={id} existingIds={members.map((m) => m.user_id)} />
+            <InviteMemberDialog projectId={id} candidates={candidates} />
           </div>
         )}
       </div>
       <MemberList projectId={id} members={members} currentUserId={user.id} isOwner={isOwner} />
+      {isOwner && (
+        <p className="mt-4 text-sm text-muted-foreground">
+          You can invite people from your connections; they join after accepting. Others can ask to join and you approve them here.
+        </p>
+      )}
       {!isMember && (
         <p className="mt-4 text-sm text-muted-foreground">
           Want to work on this? Use “Request to join” at the top — the owner will see your request here.

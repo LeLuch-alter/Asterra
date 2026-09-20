@@ -12,14 +12,22 @@ import { AiDisclaimer } from "@/components/shared/ai-disclaimer";
 import { EmptyState } from "@/components/shared/empty-state";
 import { TagList } from "@/components/shared/tag-list";
 import { UserAvatar } from "@/components/shared/user-avatar";
-import { AddMemberDialog } from "@/components/project/add-member-dialog";
-import { USER_ROLE_LABELS, type MatchCandidate } from "@/types";
+import { InviteMemberDialog } from "@/components/project/invite-member-dialog";
+import { ConnectButton } from "@/components/researcher/connect-button";
+import { USER_ROLE_LABELS, type ConnectionState, type MatchCandidate } from "@/types";
 
 type Mode = "collaborators" | "mentors";
 
-type Props = { projectId: string; isOwner: boolean; memberIds: string[]; aiConfigured: boolean };
+type Props = {
+  projectId: string;
+  isOwner: boolean;
+  memberIds: string[];
+  /** Connection state with every person the current user has any connection with. */
+  connections: Record<string, ConnectionState>;
+  aiConfigured: boolean;
+};
 
-export function MatchPanel({ projectId, isOwner, memberIds, aiConfigured }: Props) {
+export function MatchPanel({ projectId, isOwner, memberIds, connections, aiConfigured }: Props) {
   const [mode, setMode] = useState<Mode>("collaborators");
   const [matches, setMatches] = useState<MatchCandidate[] | null>(null);
   const [loading, setLoading] = useState(false);
@@ -130,19 +138,40 @@ export function MatchPanel({ projectId, isOwner, memberIds, aiConfigured }: Prop
                   {m.experience_note && <p className="mt-2 text-xs text-muted-foreground">{m.experience_note}</p>}
                 </div>
 
-                {isOwner && !memberIds.includes(m.candidate.id) && (
-                  <div className="sm:self-center">
-                    <AddMemberDialog
-                      projectId={projectId}
-                      existingIds={memberIds}
-                      preselected={m.candidate}
-                      trigger={
-                        <Button size="sm" variant="outline">
-                          <UserPlus />
-                          Add to project
-                        </Button>
+                {!memberIds.includes(m.candidate.id) && (
+                  <div className="flex flex-col gap-2 sm:self-center">
+                    {(() => {
+                      const state = connections[m.candidate.id] ?? { kind: "none" as const };
+                      if (state.kind === "connected" && isOwner) {
+                        return (
+                          <InviteMemberDialog
+                            projectId={projectId}
+                            candidates={[]}
+                            preselected={{
+                              id: m.candidate.id,
+                              full_name: m.candidate.full_name,
+                              avatar_url: m.candidate.avatar_url,
+                              organization: m.candidate.organization,
+                              role: m.candidate.role,
+                            }}
+                            trigger={
+                              <Button size="sm" variant="outline">
+                                <UserPlus />
+                                Invite to project
+                              </Button>
+                            }
+                          />
+                        );
                       }
-                    />
+                      return (
+                        <>
+                          <ConnectButton otherId={m.candidate.id} state={state} />
+                          {state.kind !== "connected" && (
+                            <p className="max-w-40 text-[11px] leading-snug text-muted-foreground">Connect first, then invite to the project.</p>
+                          )}
+                        </>
+                      );
+                    })()}
                   </div>
                 )}
               </CardContent>

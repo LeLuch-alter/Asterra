@@ -9,33 +9,15 @@ import { requireUser } from "@/lib/supabase/server";
 import { getNotifications } from "@/lib/supabase/queries/notifications";
 import { timeAgo } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import type { Notification } from "@/types";
+import { describeNotification } from "@/components/layout/notifications-live";
+import { MyInvitations } from "@/components/project/my-invitations";
+import { getMyInvitations } from "@/lib/supabase/queries/social";
 
 export const metadata: Metadata = { title: "Notifications" };
 
-function describe(n: Notification): { text: string; href?: string } {
-  const p = (n.payload ?? {}) as Record<string, string>;
-  switch (n.type) {
-    case "added_to_project":
-      return { text: `You were added to the project “${p.project_title}”`, href: `/projects/${p.project_id}` };
-    case "connection_request":
-      return { text: `${p.from_name} wants to connect with you`, href: "/connections" };
-    case "connection_accepted":
-      return { text: `${p.from_name} accepted your connection request`, href: `/researchers/${p.from}` };
-    case "join_request":
-      return { text: `${p.from_name} asked to join “${p.project_title}”`, href: `/projects/${p.project_id}/team` };
-    case "join_accepted":
-      return { text: `Your request to join “${p.project_title}” was accepted`, href: `/projects/${p.project_id}` };
-    case "join_declined":
-      return { text: `Your request to join “${p.project_title}” was declined`, href: `/projects/${p.project_id}` };
-    default:
-      return { text: n.type.replaceAll("_", " ") };
-  }
-}
-
 export default async function NotificationsPage() {
   const user = await requireUser();
-  const items = await getNotifications(user.id);
+  const [items, invitations] = await Promise.all([getNotifications(user.id), getMyInvitations(user.id)]);
   const unread = items.filter((n) => !n.read_at).length;
 
   return (
@@ -55,12 +37,13 @@ export default async function NotificationsPage() {
           ) : undefined
         }
       />
+      <MyInvitations invitations={invitations} />
       {items.length === 0 ? (
         <EmptyState icon={Bell} title="Nothing here yet" description="You will see activity here when someone connects with you or adds you to a project." />
       ) : (
         <ul className="divide-y rounded-xl border bg-card">
           {items.map((n) => {
-            const { text, href } = describe(n);
+            const { text, href } = describeNotification(n);
             const body = (
               <span className="flex items-start gap-3 px-4 py-3">
                 <span className={cn("mt-2 size-2 shrink-0 rounded-full", n.read_at ? "bg-transparent" : "bg-primary")} />

@@ -8,18 +8,20 @@ import { ProjectCard } from "@/components/project/project-card";
 import { requireUser } from "@/lib/supabase/server";
 import { getProfile } from "@/lib/supabase/queries/profiles";
 import { getMyProjects, searchProjects } from "@/lib/supabase/queries/projects";
-import { getBookmarkedIds, getMyConnections } from "@/lib/supabase/queries/social";
+import { getBookmarkedIds, getMyConnections, getMyInvitations } from "@/lib/supabase/queries/social";
+import { MyInvitations } from "@/components/project/my-invitations";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
 export default async function DashboardPage() {
   const user = await requireUser();
-  const [profile, mine, recent, bookmarked, connections] = await Promise.all([
+  const [profile, mine, recent, bookmarked, connections, invitations] = await Promise.all([
     getProfile(user.id),
     getMyProjects(user.id),
     searchProjects({}, 6),
     getBookmarkedIds(user.id),
     getMyConnections(user.id),
+    getMyInvitations(user.id),
   ]);
   const others = recent.filter((p) => !mine.some((m) => m.id === p.id));
   const profileIncomplete = profile && profile.research_fields.length === 0 && profile.skills.length === 0;
@@ -49,7 +51,7 @@ export default async function DashboardPage() {
         {[
           ["Projects", mine.length, "/projects"],
           ["Connections", connections.accepted.length, "/connections"],
-          ["Requests", connections.incoming.length, "/connections"],
+          ["Requests", connections.incoming.length + invitations.length, "/notifications"],
           ["Saved", bookmarked.size, "/bookmarks"],
         ].map(([label, value, href]) => (
           <Link key={label} href={href as string} className="border-l pl-4 transition-colors hover:border-primary">
@@ -58,6 +60,8 @@ export default async function DashboardPage() {
           </Link>
         ))}
       </dl>
+
+      <MyInvitations invitations={invitations} />
 
       {profileIncomplete && (
         <div className="mb-10 flex flex-col gap-3 rounded-xl border border-primary/30 bg-card p-5 sm:flex-row sm:items-center sm:justify-between">

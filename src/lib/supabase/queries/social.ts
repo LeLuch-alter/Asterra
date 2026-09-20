@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import type { Connection, ConnectionState, JoinRequest, ProfileLite, ProjectSummary } from "@/types";
+import type { Connection, ConnectionState, JoinRequest, ProfileLite, ProjectInvitation, ProjectSummary } from "@/types";
 
 function toState(me: string, c: Connection): ConnectionState {
   if (c.status === "accepted") return { kind: "connected", id: c.id };
@@ -18,10 +18,12 @@ export async function getConnectionState(me: string, other: string): Promise<Con
   return data ? toState(me, data) : { kind: "none" };
 }
 
-/** Connection states for many profiles at once (lists, search results). */
+/**
+ * Connection states for many profiles at once (lists, search results).
+ * With an empty `ids` list it returns every person `me` has any connection with.
+ */
 export async function getConnectionStates(me: string, ids: string[]): Promise<Record<string, ConnectionState>> {
   const result: Record<string, ConnectionState> = {};
-  if (ids.length === 0) return result;
   const supabase = await createClient();
   const { data } = await supabase
     .from("connections")
@@ -116,4 +118,56 @@ export async function getBookmarkedProjects(me: string): Promise<ProjectSummary[
     .map((r) => r.project)
     .filter((p): p is NonNullable<Row["project"]> => Boolean(p))
     .map(({ project_members, ...p }) => ({ ...p, member_count: project_members?.[0]?.count ?? 0 }));
+}
+
+// ---------- Project invitations ----------
+
+export type InvitationWithProfile = ProjectInvitation & { profile: ProfileLite };
+export type InvitationWithProject = ProjectInvitation & {
+  project: { id: string; title: string; research_field: string };
+  inviter: ProfileLite;
+};
+
+/** Accepted connections of `me` who are not yet members of / invited to the project. */
+export async function getInvitableConnections(me: string, projectId: string): Promise<ProfileLite[]> {
+  const supabase = await createClient();
+  const [{ accepted }, { data: members }, { data: invited }] = await Promise.all([
+    getMyConnections(me),
+    supabase.from("project_members").select("user_id").eq("project_id", projectId),
+    supabase.from("project_invitations").select("invitee_id").eq("project_id", projectId).eq("status", "pending"),
+  ]);
+  const taken = new Set([...(members ?? []).map((m) => m.user_id), ...(invited ?? []).map((i) => i.invitee_id)]);
+  return accepted.map((c) => c.profile).filter((p) => !taken.has(p.id));
+}
+
+/** Pending invitations sent for a project (owner view). */
+export async function getPendingInvitationsForProject(projectId: string): Promise<InvitationWithProfile[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("project_invitations")
+    .select("*, profile:profiles!project_invitations_invitee_id_fkey(id, full_name, avatar_url, organization, role)")
+    .eq("project_id", projectId)
+    .eq("status", "pending")
+    .order("created_at");
+  return (data ?? []) as unknown as InvitationWithProfile[];
+}
+
+/** Pending invitations addressed to `me`. */
+export async function getMyInvitations(me: string): Promise<InvitationWithProject[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("project_invitations")
+    .select(
+      "*, project:projects(id, title, research_field), inviter:profiles!project_invitations_inviter_id_fkey(id, full_name, avatar_url, organization, role)",
+    )
+    .eq("invitee_id", me)
+    .eq("status", "pending")
+    .order("created_at", { ascending: false });
+  return (data ?? []) as unknown as InvitationWithProject[];
+}
+
+/** Ids of everyone `me` has an accepted connection with. */
+export async function getFriendIds(me: string): Promise<Set<string>> {
+  const { accepted } = await getMyConnections(me);
+  return new Set(accepted.map((c) => c.profile.id));
 }

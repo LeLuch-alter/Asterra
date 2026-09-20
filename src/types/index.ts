@@ -8,11 +8,12 @@ export type {
   RoadmapStatus,
 } from "./database";
 
-export type { ConnectionStatus, JoinRequestStatus } from "./database";
+export type { ConnectionStatus, JoinRequestStatus, InvitationStatus } from "./database";
 
 export type Connection = Tables<"connections">;
 export type JoinRequest = Tables<"project_join_requests">;
 export type Bookmark = Tables<"bookmarks">;
+export type ProjectInvitation = Tables<"project_invitations">;
 
 /** How the current user relates to another profile (drives the Connect button). */
 export type ConnectionState =

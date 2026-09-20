@@ -124,6 +124,20 @@ type JoinRequestRow = {
   responded_at: string | null;
 };
 
+export type InvitationStatus = "pending" | "accepted" | "declined";
+
+type InvitationRow = {
+  id: string;
+  project_id: string;
+  inviter_id: string;
+  invitee_id: string;
+  role: MemberRole;
+  message: string;
+  status: InvitationStatus;
+  created_at: string;
+  responded_at: string | null;
+};
+
 type BookmarkRow = {
   user_id: string;
   project_id: string;
@@ -199,11 +213,16 @@ export type Database = {
         Insertable<JoinRequestRow, "id" | "message" | "status" | "created_at" | "responded_at">
       >;
       bookmarks: Table<BookmarkRow, Insertable<BookmarkRow, "created_at">>;
+      project_invitations: Table<
+        InvitationRow,
+        Insertable<InvitationRow, "id" | "role" | "message" | "status" | "created_at" | "responded_at">
+      >;
     };
     Views: Record<string, never>;
     Functions: {
       is_project_member: { Args: { p_project_id: string }; Returns: boolean };
       is_project_owner: { Args: { p_project_id: string }; Returns: boolean };
+      accept_project_invitation: { Args: { p_invitation_id: string }; Returns: undefined };
     };
     Enums: {
       user_role: UserRole;
@@ -213,6 +232,7 @@ export type Database = {
       roadmap_status: RoadmapStatus;
       connection_status: ConnectionStatus;
       join_request_status: JoinRequestStatus;
+      invitation_status: InvitationStatus;
     };
     CompositeTypes: Record<string, never>;
   };
