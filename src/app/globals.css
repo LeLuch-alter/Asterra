@@ -193,16 +193,32 @@
   }
 }
 
-/* Orbit animation on the auth pages. Only transforms/opacity animate — cheap and gradient-free. */
+/* 3D orbit scene. Only transforms/opacity animate — GPU-composited and gradient-free. */
 @keyframes orbit-spin {
+  from {
+    transform: rotateZ(0deg);
+  }
   to {
-    transform: rotate(360deg);
+    transform: rotateZ(360deg);
   }
 }
 @keyframes orbit-spin-reverse {
   to {
-    transform: rotate(-360deg);
+    transform: rotateZ(-360deg);
   }
+}
+/* Nodes pulse slightly as they travel, which reads as depth. */
+@keyframes node-breathe {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in oklch, var(--primary) 45%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 6px color-mix(in oklch, var(--primary) 0%, transparent);
+  }
+}
+.orbit-node {
+  animation: node-breathe 3.2s ease-in-out infinite;
 }
 @keyframes twinkle {
   0%,

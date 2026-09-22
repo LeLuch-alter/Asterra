@@ -8,12 +8,23 @@ export type {
   RoadmapStatus,
 } from "./database";
 
-export type { ConnectionStatus, JoinRequestStatus, InvitationStatus } from "./database";
+export type {
+  ConnectionStatus,
+  JoinRequestStatus,
+  InvitationStatus,
+  ExperimentStatus,
+  SourceTarget,
+  ResearchFieldName,
+} from "./database";
 
 export type Connection = Tables<"connections">;
 export type JoinRequest = Tables<"project_join_requests">;
 export type Bookmark = Tables<"bookmarks">;
 export type ProjectInvitation = Tables<"project_invitations">;
+export type Experiment = Tables<"experiments">;
+export type ResearchSource = Tables<"research_sources">;
+export type ResearchVersion = Tables<"research_versions">;
+export type ProjectActivity = Tables<"project_activity">;
 
 /** How the current user relates to another profile (drives the Connect button). */
 export type ConnectionState =
@@ -98,4 +109,29 @@ export const MEMBER_ROLE_LABELS: Record<Tables<"project_members">["role"], strin
   researcher: "Researcher",
   mentor: "Mentor",
   contributor: "Contributor",
+};
+
+export const EXPERIMENT_STATUS_LABELS: Record<Tables<"experiments">["status"], string> = {
+  planned: "Planned",
+  running: "Running",
+  done: "Done",
+  failed: "Inconclusive",
+};
+
+/** Where a scientific source is attached inside the research. */
+export const SOURCE_TARGET_LABELS: Record<Tables<"research_sources">["target_type"], string> = {
+  project: "Project",
+  research_question: "Research question",
+  hypothesis: "Hypothesis",
+  methodology: "Methodology",
+  experiment: "Experiment",
+  result: "Result",
+  roadmap_item: "Roadmap step",
+};
+
+export const RESEARCH_FIELD_LABELS: Record<Tables<"research_versions">["field"], string> = {
+  title: "Title",
+  research_question: "Research question",
+  hypothesis: "Hypothesis",
+  methodology: "Methodology",
 };

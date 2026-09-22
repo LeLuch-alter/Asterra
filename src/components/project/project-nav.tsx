@@ -6,8 +6,12 @@ import { cn } from "@/lib/utils";
 
 const TABS = [
   { segment: "", label: "Overview" },
+  { segment: "graph", label: "Graph" },
+  { segment: "timeline", label: "Timeline" },
   { segment: "roadmap", label: "Roadmap" },
+  { segment: "experiments", label: "Experiments" },
   { segment: "results", label: "Results" },
+  { segment: "sources", label: "Sources" },
   { segment: "team", label: "Team" },
   { segment: "match", label: "AI Match", members: true },
   { segment: "assistant", label: "AI Assistant", members: true },

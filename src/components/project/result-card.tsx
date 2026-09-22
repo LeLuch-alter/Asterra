@@ -16,9 +16,10 @@ type Props = {
   result: ResearchResultWithAuthor;
   canEdit: boolean;
   isMember: boolean;
+  experiments?: { id: string; title: string }[];
 };
 
-export function ResultCard({ result, canEdit, isMember }: Props) {
+export function ResultCard({ result, canEdit, isMember, experiments = [] }: Props) {
   const [expanded, setExpanded] = useState(false);
   const [pending, start] = useTransition();
   const long = result.content.length > 600;
@@ -42,6 +43,14 @@ export function ResultCard({ result, canEdit, isMember }: Props) {
               <UserAvatar name={result.author.full_name} src={result.author.avatar_url} className="size-5" />
               {result.author.full_name} · {formatDate(result.created_at)}
               {result.updated_at !== result.created_at && " · edited"}
+              {result.experiment_id && (
+                <>
+                  {" · from "}
+                  <Link href={`/projects/${result.project_id}/experiments`} className="hover:underline">
+                    {experiments.find((e) => e.id === result.experiment_id)?.title ?? "an experiment"}
+                  </Link>
+                </>
+              )}
             </p>
           </div>
           <div className="flex shrink-0 gap-1">
@@ -58,6 +67,7 @@ export function ResultCard({ result, canEdit, isMember }: Props) {
                 <ResultFormDialog
                   projectId={result.project_id}
                   result={result}
+                  experiments={experiments}
                   trigger={
                     <Button variant="ghost" size="icon" aria-label="Edit">
                       <Pencil />

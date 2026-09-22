@@ -3,6 +3,7 @@ import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SiteHeader } from "@/components/layout/site-header";
 import { NewsFeed } from "@/components/news/news-feed";
+import { NEWS_CATEGORIES, type NewsCategory } from "@/lib/news/types";
 import { OrbitScene } from "@/components/shared/orbit-scene";
 import { NotConfigured } from "@/components/shared/not-configured";
 import { publicEnv } from "@/lib/env";
@@ -19,7 +20,8 @@ const STATS = [
 
 export default async function HomePage({ searchParams }: { searchParams: Promise<{ category?: string }> }) {
   if (!publicEnv.supabaseConfigured) return <NotConfigured />;
-  const [{ category = "All" }, user] = await Promise.all([searchParams, getUser()]);
+  const [{ category: raw = "All" }, user] = await Promise.all([searchParams, getUser()]);
+  const category = (NEWS_CATEGORIES as readonly string[]).includes(raw) ? (raw as NewsCategory) : "All";
 
   return (
     <>

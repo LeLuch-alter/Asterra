@@ -34,8 +34,8 @@ Without `AI_API_KEY` the app runs, and the AI buttons are disabled with a hint.
 
 1. Create a project at supabase.com.
 2. **Authentication → Providers → Email**: turn **off** "Confirm email" for a smooth demo (otherwise users must click a confirmation link).
-3. **SQL editor**: run `supabase/migrations/0001_init.sql`, then `supabase/migrations/0002_social.sql` (connections, join requests, bookmarks, avatar storage bucket), then `supabase/migrations/0003_invitations.sql` (project invitations + realtime notifications).
-4. **SQL editor**: run `supabase/seed.sql` for demo data. (If demo accounts were created with an older seed and login fails with "Database error querying schema", run `supabase/fix_demo_users.sql` once.) Demo accounts (password `demo1234`):
+3. **SQL editor**: run `supabase/migrations/0001_init.sql`, then `supabase/migrations/0002_social.sql` (connections, join requests, bookmarks, avatar storage bucket), then `supabase/migrations/0003_invitations.sql` (project invitations + realtime notifications), then `supabase/migrations/0004_research_graph.sql` (experiments, sources, version history, timeline, forks).
+4. **SQL editor**: run `supabase/seed.sql`, then `supabase/seed_graph.sql` (experiments, sources, a fork) for demo data. (If demo accounts were created with an older seed and login fails with "Database error querying schema", run `supabase/fix_demo_users.sql` once.) Demo accounts (password `demo1234`):
    - `aigerim@demo.asterra` — student, owner of the water-pollution project
    - `daniyar@demo.asterra` — hydrologist, mentor
    - `elena@demo.asterra` — molecular biologist, mentor
@@ -61,9 +61,10 @@ npx tsc --noEmit
 
 ## 5. Features
 
-- Public home page with a readable science-news feed (RSS / NewsAPI with demo fallback), light and dark themes.
+- Public home page with a science-news feed split by field (one RSS feed per field: CS, Biology, Physics, Chemistry, Astronomy, Environmental Science, Medicine), light and dark themes, 3D hero scene.
 - Auth, researcher profiles with avatar upload (Supabase Storage bucket `avatars`).
 - Projects: create / edit / archive, members and roles, research results, editable roadmap.
+- **Research as a living graph**: an interactive map of the project (question -> hypothesis -> methodology -> experiments -> results, plus people, sources, forks and related work), a timeline of how the research evolved, version history of the core ideas, experiments with their own purpose/data/outcome, scientific sources attached to the part of the research they support, and forking a project into a new research direction.
 - Discovery: project and researcher search with filters, global search (`/search`), saved projects (`/bookmarks`).
 - Social: connection requests between researchers (`/connections`); members join a project only with consent — the owner invites a connection (invitee accepts) or a person requests to join (owner accepts on the Team tab); realtime notifications with toasts.
 - AI: Research Roadmap, AI Match, Research Assistant — all server-side, provider behind `src/lib/ai/provider.ts`.

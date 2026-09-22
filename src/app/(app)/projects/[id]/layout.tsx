@@ -1,11 +1,13 @@
 import Link from "next/link";
-import { Lock, Pencil } from "lucide-react";
+import { GitFork, Lock, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ProjectNav } from "@/components/project/project-nav";
 import { BookmarkButton } from "@/components/project/bookmark-button";
 import { JoinRequestButton } from "@/components/project/join-request-button";
+import { ForkDialog } from "@/components/graph/fork-dialog";
 import { getProjectContext } from "@/lib/supabase/queries/project-context";
 import { getBookmarkedIds, getMyJoinRequest } from "@/lib/supabase/queries/social";
+import { getForkInfo } from "@/lib/supabase/queries/graph";
 import { PROJECT_STATUS_LABELS } from "@/types";
 
 export default async function ProjectLayout({
@@ -17,9 +19,10 @@ export default async function ProjectLayout({
 }) {
   const { id } = await params;
   const { project, isMember, user } = await getProjectContext(id);
-  const [bookmarked, joinRequest] = await Promise.all([
+  const [bookmarked, joinRequest, forkInfo] = await Promise.all([
     getBookmarkedIds(user.id),
     isMember ? Promise.resolve(null) : getMyJoinRequest(id, user.id),
+    getForkInfo(project),
   ]);
 
   return (
@@ -40,9 +43,29 @@ export default async function ProjectLayout({
             )}
           </p>
           <h1 className="display text-4xl sm:text-5xl">{project.title}</h1>
+          {(forkInfo.parent || forkInfo.forks.length > 0) && (
+            <p className="mt-2 flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground">
+              <GitFork className="size-3.5" />
+              {forkInfo.parent && (
+                <>
+                  forked from{" "}
+                  <Link href={`/projects/${forkInfo.parent.id}`} className="text-foreground underline-offset-4 hover:underline">
+                    {forkInfo.parent.title}
+                  </Link>
+                </>
+              )}
+              {forkInfo.parent && forkInfo.forks.length > 0 && <span className="text-border">·</span>}
+              {forkInfo.forks.length > 0 && (
+                <>
+                  {forkInfo.forks.length} {forkInfo.forks.length === 1 ? "fork" : "forks"} of this research
+                </>
+              )}
+            </p>
+          )}
         </div>
         <div className="flex shrink-0 flex-wrap gap-2">
           <BookmarkButton projectId={project.id} bookmarked={bookmarked.has(project.id)} />
+          <ForkDialog projectId={project.id} projectTitle={project.title} />
           {isMember ? (
             <Button asChild variant="outline" size="sm">
               <Link href={`/projects/${project.id}/edit`}>

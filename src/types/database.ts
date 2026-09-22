@@ -42,6 +42,7 @@ type ProjectRow = {
   required_skills: string[];
   status: ProjectStatus;
   visibility: ProjectVisibility;
+  forked_from: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -57,6 +58,7 @@ type ResearchResultRow = {
   id: string;
   project_id: string;
   author_id: string;
+  experiment_id: string | null;
   title: string;
   content: string;
   created_at: string;
@@ -138,6 +140,59 @@ type InvitationRow = {
   responded_at: string | null;
 };
 
+export type ExperimentStatus = "planned" | "running" | "done" | "failed";
+export type SourceTarget =
+  | "project" | "research_question" | "hypothesis" | "methodology" | "experiment" | "result" | "roadmap_item";
+export type ResearchFieldName = "title" | "research_question" | "hypothesis" | "methodology";
+
+type ExperimentRow = {
+  id: string;
+  project_id: string;
+  author_id: string;
+  title: string;
+  purpose: string;
+  methodology: string;
+  data_description: string;
+  outcome: string;
+  status: ExperimentStatus;
+  position: number;
+  created_at: string;
+  updated_at: string;
+};
+
+type ResearchSourceRow = {
+  id: string;
+  project_id: string;
+  added_by: string;
+  title: string;
+  authors: string;
+  year: number | null;
+  url: string;
+  note: string;
+  target_type: SourceTarget;
+  target_id: string | null;
+  created_at: string;
+};
+
+type ResearchVersionRow = {
+  id: string;
+  project_id: string;
+  field: ResearchFieldName;
+  version: number;
+  content: string;
+  author_id: string | null;
+  created_at: string;
+};
+
+type ProjectActivityRow = {
+  id: string;
+  project_id: string;
+  actor_id: string | null;
+  type: string;
+  payload: Json;
+  created_at: string;
+};
+
 type BookmarkRow = {
   user_id: string;
   project_id: string;
@@ -188,6 +243,7 @@ export type Database = {
           | "required_skills"
           | "status"
           | "visibility"
+          | "forked_from"
           | "created_at"
           | "updated_at"
         >
@@ -195,7 +251,7 @@ export type Database = {
       project_members: Table<ProjectMemberRow, Insertable<ProjectMemberRow, "role" | "joined_at">>;
       research_results: Table<
         ResearchResultRow,
-        Insertable<ResearchResultRow, "id" | "content" | "created_at" | "updated_at">
+        Insertable<ResearchResultRow, "id" | "content" | "experiment_id" | "created_at" | "updated_at">
       >;
       research_roadmap_items: Table<
         RoadmapItemRow,
@@ -213,6 +269,22 @@ export type Database = {
         Insertable<JoinRequestRow, "id" | "message" | "status" | "created_at" | "responded_at">
       >;
       bookmarks: Table<BookmarkRow, Insertable<BookmarkRow, "created_at">>;
+      experiments: Table<
+        ExperimentRow,
+        Insertable<
+          ExperimentRow,
+          "id" | "purpose" | "methodology" | "data_description" | "outcome" | "status" | "position" | "created_at" | "updated_at"
+        >
+      >;
+      research_sources: Table<
+        ResearchSourceRow,
+        Insertable<
+          ResearchSourceRow,
+          "id" | "authors" | "year" | "url" | "note" | "target_type" | "target_id" | "created_at"
+        >
+      >;
+      research_versions: Table<ResearchVersionRow, Insertable<ResearchVersionRow, "id" | "author_id" | "created_at">>;
+      project_activity: Table<ProjectActivityRow, Insertable<ProjectActivityRow, "id" | "actor_id" | "payload" | "created_at">>;
       project_invitations: Table<
         InvitationRow,
         Insertable<InvitationRow, "id" | "role" | "message" | "status" | "created_at" | "responded_at">
@@ -223,6 +295,7 @@ export type Database = {
       is_project_member: { Args: { p_project_id: string }; Returns: boolean };
       is_project_owner: { Args: { p_project_id: string }; Returns: boolean };
       accept_project_invitation: { Args: { p_invitation_id: string }; Returns: undefined };
+      fork_project: { Args: { p_project_id: string; p_title: string }; Returns: string };
     };
     Enums: {
       user_role: UserRole;
@@ -233,6 +306,9 @@ export type Database = {
       connection_status: ConnectionStatus;
       join_request_status: JoinRequestStatus;
       invitation_status: InvitationStatus;
+      experiment_status: ExperimentStatus;
+      source_target: SourceTarget;
+      research_field_name: ResearchFieldName;
     };
     CompositeTypes: Record<string, never>;
   };

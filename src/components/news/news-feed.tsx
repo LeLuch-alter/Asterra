@@ -2,13 +2,13 @@ import Link from "next/link";
 import { ExternalLink, Newspaper } from "lucide-react";
 import { EmptyState } from "@/components/shared/empty-state";
 import { getNews } from "@/lib/news/fetch-news";
-import { NEWS_CATEGORIES } from "@/lib/news/types";
+import { NEWS_CATEGORIES, type NewsCategory } from "@/lib/news/types";
 import type { NewsArticle } from "@/lib/news/types";
 import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 type Props = {
-  category?: string;
+  category?: NewsCategory;
   /** Base path for category links: "/" on the home page, "/news" inside the app. */
   basePath: "/" | "/news";
 };
@@ -68,9 +68,8 @@ function Row({ a }: { a: NewsArticle }) {
 }
 
 export async function NewsFeed({ category = "All", basePath }: Props) {
-  const { articles, live } = await getNews();
-  const filtered = category === "All" ? articles : articles.filter((a) => a.category === category);
-  const [lead, ...rest] = filtered;
+  const { articles, live } = await getNews(category);
+  const [lead, ...rest] = articles;
 
   return (
     <section>
@@ -89,7 +88,7 @@ export async function NewsFeed({ category = "All", basePath }: Props) {
             </Link>
           ))}
         </nav>
-        <p className="eyebrow">{live ? "Live feeds" : "Demo data"}</p>
+        <p className="eyebrow">{live ? `${articles.length} stories · live feeds` : "Demo data"}</p>
       </div>
 
       {!lead ? (

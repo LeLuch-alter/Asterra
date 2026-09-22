@@ -4,11 +4,13 @@ import { ResultCard } from "@/components/project/result-card";
 import { ResultFormDialog } from "@/components/project/result-form-dialog";
 import { getProjectContext } from "@/lib/supabase/queries/project-context";
 import { getResults } from "@/lib/supabase/queries/results";
+import { getExperiments } from "@/lib/supabase/queries/graph";
 
 export default async function ResultsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const { user, isMember, isOwner } = await getProjectContext(id);
-  const results = await getResults(id);
+  const [results, experiments] = await Promise.all([getResults(id), getExperiments(id)]);
+  const experimentOptions = experiments.map((e) => ({ id: e.id, title: e.title }));
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -16,7 +18,7 @@ export default async function ResultsPage({ params }: { params: Promise<{ id: st
         <p className="text-sm text-muted-foreground">
           {results.length} {results.length === 1 ? "result" : "results"}
         </p>
-        {isMember && <ResultFormDialog projectId={id} />}
+        {isMember && <ResultFormDialog projectId={id} experiments={experimentOptions} />}
       </div>
 
       {results.length === 0 ? (
@@ -28,12 +30,18 @@ export default async function ResultsPage({ params }: { params: Promise<{ id: st
               ? "Add notes, findings or draft sections. Every member of the team can contribute."
               : "The team has not published any results yet."
           }
-          action={isMember ? <ResultFormDialog projectId={id} /> : undefined}
+          action={isMember ? <ResultFormDialog projectId={id} experiments={experimentOptions} /> : undefined}
         />
       ) : (
         <div className="grid gap-4">
           {results.map((r) => (
-            <ResultCard key={r.id} result={r} isMember={isMember} canEdit={isOwner || r.author_id === user.id} />
+            <ResultCard
+              key={r.id}
+              result={r}
+              isMember={isMember}
+              canEdit={isOwner || r.author_id === user.id}
+              experiments={experimentOptions}
+            />
           ))}
         </div>
       )}

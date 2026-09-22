@@ -3,26 +3,9 @@ import { unstable_cache } from "next/cache";
 import Parser from "rss-parser";
 import { serverEnv } from "@/lib/env";
 import { FALLBACK_NEWS } from "./fallback-news";
-import type { NewsArticle } from "./types";
+import { FIELD_FEEDS, NEWS_FIELDS, type NewsArticle, type NewsCategory, type NewsField } from "./types";
 
-const parser = new Parser({ timeout: 5000, headers: { "User-Agent": "Mozilla/5.0 (compatible; Asterra/1.0)" } });
-
-/** Very small keyword classifier so RSS items land in our demo categories. */
-const CATEGORY_KEYWORDS: [string, RegExp][] = [
-  ["Astronomy", /(space|planet|galaxy|telescope|nasa|star|asteroid|comet|orbit|cosmic|mars|moon|rings?|solar|lunar|rocket|satellite)/i],
-  ["Physics", /(quantum|particle|physic|laser|magnet|superconduct|photon|gravity|fusion|reactor|collider)/i],
-  ["Chemistry", /(chemi|molecule|catalyst|polymer|enzyme|compound|battery|plastic|material)/i],
-  ["Biology", /(cell|gene|dna|protein|bacteria|species|brain|neuro|evolution|animal|plant|fossil|dinosaur|rex|virus|vaccine|disease|cancer|sleep|health|medical|drug)/i],
-  ["Environmental Science", /(climate|ocean|carbon|pollution|ecosystem|forest|coral|emission|weather|reef|wildfire|drought|flood|energy)/i],
-  ["Computer Science", /(ai|artificial intelligence|machine learning|algorithm|robot|software|computer|data|chip|internet|app)/i],
-];
-
-function classify(text: string): string {
-  for (const [category, regex] of CATEGORY_KEYWORDS) {
-    if (regex.test(text)) return category;
-  }
-  return "General";
-}
+const parser = new Parser({ timeout: 6000, headers: { "User-Agent": "Mozilla/5.0 (compatible; Asterra/1.0)" } });
 
 function stripHtml(html: string): string {
   return html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
@@ -36,26 +19,42 @@ function sourceName(url: string): string {
   }
 }
 
-async function fetchFeed(url: string): Promise<NewsArticle[]> {
+/** Reads one feed and stamps every article with the field that feed belongs to. */
+async function fetchFeed(url: string, field: NewsField): Promise<NewsArticle[]> {
   const feed = await parser.parseURL(url);
-  const source = feed.title ?? sourceName(url);
+  const source = (feed.title ?? sourceName(url)).replace(/ News.*/i, "").trim() || sourceName(url);
   return (feed.items ?? [])
     .filter((item) => item.link && item.title)
-    .map((item, i) => {
-      const summary = stripHtml(item.contentSnippet ?? item.content ?? item.summary ?? "").slice(0, 300);
-      return {
-        id: item.guid ?? item.link ?? `${url}-${i}`,
-        title: item.title!.trim(),
-        summary,
-        url: item.link!,
-        source,
-        category: classify(`${item.title} ${summary}`),
-        image_url: item.enclosure?.url ?? null,
-        published_at: item.isoDate ?? new Date().toISOString(),
-      };
-    });
+    .map((item, i) => ({
+      id: item.guid ?? item.link ?? `${url}-${i}`,
+      title: item.title!.trim(),
+      summary: stripHtml(item.contentSnippet ?? item.content ?? item.summary ?? "").slice(0, 300),
+      url: item.link!,
+      source,
+      category: field as NewsCategory,
+      image_url: item.enclosure?.url ?? null,
+      published_at: item.isoDate ?? new Date().toISOString(),
+    }));
 }
 
+function dedupeAndSort(articles: NewsArticle[], limit: number): NewsArticle[] {
+  const seen = new Set<string>();
+  return articles
+    .filter((a) => (seen.has(a.url) ? false : (seen.add(a.url), true)))
+    .sort((a, b) => Date.parse(b.published_at) - Date.parse(a.published_at))
+    .slice(0, limit);
+}
+
+/** All feeds of one science field. */
+async function fetchField(field: NewsField, limit: number): Promise<NewsArticle[]> {
+  const results = await Promise.allSettled(FIELD_FEEDS[field].map((url) => fetchFeed(url, field)));
+  return dedupeAndSort(
+    results.flatMap((r) => (r.status === "fulfilled" ? r.value : [])),
+    limit,
+  );
+}
+
+/** NewsAPI headlines are only used for the "All" tab; they have no reliable field. */
 type NewsApiArticle = {
   title?: string | null;
   description?: string | null;
@@ -65,12 +64,11 @@ type NewsApiArticle = {
   source?: { name?: string | null } | null;
 };
 
-/** NewsAPI.org science headlines (free tier: ~100 requests/day, cached by the page revalidate). */
 async function fetchNewsApi(apiKey: string): Promise<NewsArticle[]> {
   const url = new URL("https://newsapi.org/v2/top-headlines");
   url.searchParams.set("category", "science");
   url.searchParams.set("language", "en");
-  url.searchParams.set("pageSize", "50");
+  url.searchParams.set("pageSize", "30");
 
   const res = await fetch(url, { headers: { "X-Api-Key": apiKey }, next: { revalidate: 1800 } });
   if (!res.ok) throw new Error(`NewsAPI request failed (${res.status})`);
@@ -78,44 +76,48 @@ async function fetchNewsApi(apiKey: string): Promise<NewsArticle[]> {
 
   return (data.articles ?? [])
     .filter((a) => a.url && a.title && a.title !== "[Removed]")
-    .map((a) => {
-      const summary = (a.description ?? "").slice(0, 300);
-      return {
-        id: a.url!,
-        title: a.title!.trim(),
-        summary,
-        url: a.url!,
-        source: a.source?.name ?? sourceName(a.url!),
-        category: classify(`${a.title} ${summary}`),
-        image_url: a.urlToImage ?? null,
-        published_at: a.publishedAt ?? new Date().toISOString(),
-      };
-    });
+    .map((a) => ({
+      id: a.url!,
+      title: a.title!.trim(),
+      summary: (a.description ?? "").slice(0, 300),
+      url: a.url!,
+      source: a.source?.name ?? sourceName(a.url!),
+      category: "All" as NewsCategory,
+      image_url: a.urlToImage ?? null,
+      published_at: a.publishedAt ?? new Date().toISOString(),
+    }));
 }
 
-/**
- * Fetches NewsAPI (if a key is set) and all configured RSS feeds. Never throws:
- * if nothing is configured or every source fails, returns seeded fallback articles.
- */
-async function fetchAllNews(): Promise<{ articles: NewsArticle[]; live: boolean }> {
-  const urls = serverEnv.newsFeedUrls;
-  const apiKey = serverEnv.newsApiKey;
-  if (urls.length === 0 && !apiKey) return { articles: FALLBACK_NEWS, live: false };
+async function fetchCategory(category: NewsCategory): Promise<{ articles: NewsArticle[]; live: boolean }> {
+  // One field: only that field's feeds — fast and unambiguous.
+  if (category !== "All") {
+    const articles = await fetchField(category as NewsField, 40);
+    if (articles.length > 0) return { articles, live: true };
+    return { articles: FALLBACK_NEWS.filter((a) => a.category === category), live: false };
+  }
 
-  const sources: Promise<NewsArticle[]>[] = [...urls.map(fetchFeed)];
-  if (apiKey) sources.unshift(fetchNewsApi(apiKey));
-
-  const results = await Promise.allSettled(sources);
-  const seen = new Set<string>();
-  const articles = results
-    .flatMap((r) => (r.status === "fulfilled" ? r.value : []))
-    .filter((a) => (seen.has(a.url) ? false : (seen.add(a.url), true)))
-    .sort((a, b) => Date.parse(b.published_at) - Date.parse(a.published_at))
-    .slice(0, 60);
-
+  // "All": a balanced mix from every field, newest first.
+  const perField = await Promise.all(NEWS_FIELDS.map((f) => fetchField(f, 10)));
+  const extras = serverEnv.newsApiKey ? await fetchNewsApi(serverEnv.newsApiKey).catch(() => []) : [];
+  const articles = dedupeAndSort([...perField.flat(), ...extras], 60);
   if (articles.length === 0) return { articles: FALLBACK_NEWS, live: false };
   return { articles, live: true };
 }
 
-/** Cached for 30 minutes so every page/request shares one fetch of the feeds. */
-export const getNews = unstable_cache(fetchAllNews, ["science-news"], { revalidate: 1800 });
+/**
+ * Science news for one category. Each category is fetched and cached separately
+ * for 30 minutes, so switching fields is instant and a broken feed only affects its own tab.
+ * Never throws: falls back to seeded articles.
+ */
+export const getNews = unstable_cache(
+  async (category: NewsCategory = "All") => {
+    try {
+      return await fetchCategory(category);
+    } catch {
+      const fallback = category === "All" ? FALLBACK_NEWS : FALLBACK_NEWS.filter((a) => a.category === category);
+      return { articles: fallback, live: false };
+    }
+  },
+  ["science-news"],
+  { revalidate: 1800 },
+);

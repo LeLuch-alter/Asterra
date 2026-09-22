@@ -16,6 +16,12 @@ export const projectSchema = z.object({
 export const researchResultSchema = z.object({
   title: z.string().trim().min(1, "Enter a title").max(200),
   content: z.string().trim().min(1, "Enter some content").max(20000),
+  /** Optional link to the experiment that produced this result. */
+  experiment_id: z
+    .string()
+    .trim()
+    .optional()
+    .transform((v) => (v ? v : null)),
 });
 
 export const roadmapItemSchema = z.object({
