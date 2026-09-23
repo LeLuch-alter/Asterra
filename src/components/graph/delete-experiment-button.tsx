@@ -5,21 +5,23 @@ import { Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { deleteExperiment } from "@/actions/graph";
 import { Button } from "@/components/ui/button";
+import { useT } from "@/lib/i18n/provider";
 
 export function DeleteExperimentButton({ experimentId, projectId }: { experimentId: string; projectId: string }) {
+  const t = useT();
   const [pending, start] = useTransition();
   return (
     <Button
       variant="ghost"
       size="icon-sm"
-      aria-label="Delete experiment"
+      aria-label={t("Delete experiment")}
       disabled={pending}
       onClick={() => {
-        if (!confirm("Delete this experiment? Linked results stay, but lose the link.")) return;
+        if (!confirm(t("Delete this experiment? Linked results stay, but lose the link."))) return;
         start(async () => {
           const res = await deleteExperiment(experimentId, projectId);
           if (!res.ok) toast.error(res.error);
-          else toast.success("Experiment deleted");
+          else toast.success(t("Experiment deleted"));
         });
       }}
     >

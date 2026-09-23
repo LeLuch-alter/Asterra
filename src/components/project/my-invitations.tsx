@@ -10,9 +10,12 @@ import { UserAvatar } from "@/components/shared/user-avatar";
 import { timeAgo } from "@/lib/format";
 import type { InvitationWithProject } from "@/lib/supabase/queries/social";
 import { MEMBER_ROLE_LABELS } from "@/types";
+import { useLocale, useT } from "@/lib/i18n/provider";
 
 /** Invitations addressed to the current user, with Accept / Decline. */
 export function MyInvitations({ invitations }: { invitations: InvitationWithProject[] }) {
+  const t = useT();
+  const locale = useLocale();
   const [pending, start] = useTransition();
   if (invitations.length === 0) return null;
 
@@ -20,7 +23,7 @@ export function MyInvitations({ invitations }: { invitations: InvitationWithProj
     start(async () => {
       const res = await respondToInvitation(id, accept);
       if (!res.ok) toast.error(res.error);
-      else toast.success(accept ? `You joined “${title}”` : "Invitation declined");
+      else toast.success(accept ? t("You joined “{title}”", { title }) : t("Invitation declined"));
     });
   }
 
@@ -28,7 +31,7 @@ export function MyInvitations({ invitations }: { invitations: InvitationWithProj
     <section className="mb-8 rounded-xl border border-primary/30 bg-card">
       <header className="border-b px-4 py-3">
         <p className="eyebrow eyebrow-accent flex items-center gap-2">
-          <Mail className="size-3.5" /> Project invitations · {invitations.length}
+          <Mail className="size-3.5" /> {t("Project invitations")} · {invitations.length}
         </p>
       </header>
       <ul className="divide-y">
@@ -40,25 +43,25 @@ export function MyInvitations({ invitations }: { invitations: InvitationWithProj
                 <Link href={`/researchers/${i.inviter.id}`} className="font-medium hover:underline">
                   {i.inviter.full_name}
                 </Link>{" "}
-                invited you to join{" "}
+                {t("invited you to join")}{" "}
                 <Link href={`/projects/${i.project.id}`} className="font-medium hover:underline">
                   {i.project.title}
                 </Link>{" "}
-                as {MEMBER_ROLE_LABELS[i.role].toLowerCase()}
+                {t("as {role}", { role: t(MEMBER_ROLE_LABELS[i.role]).toLowerCase() })}
               </p>
               <p className="text-xs text-muted-foreground">
-                {i.project.research_field} · {timeAgo(i.created_at)}
+                {i.project.research_field} · {timeAgo(i.created_at, locale)}
               </p>
               {i.message && <p className="mt-1 text-sm text-muted-foreground">“{i.message}”</p>}
             </div>
             <div className="flex shrink-0 gap-1">
               <Button size="sm" disabled={pending} onClick={() => respond(i.id, true, i.project.title)}>
                 {pending ? <Loader2 className="animate-spin" /> : <Check />}
-                Accept
+                {t("Accept")}
               </Button>
               <Button size="sm" variant="ghost" disabled={pending} onClick={() => respond(i.id, false, i.project.title)}>
                 <X />
-                Decline
+                {t("Decline")}
               </Button>
             </div>
           </li>

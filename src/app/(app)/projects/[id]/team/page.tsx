@@ -8,6 +8,7 @@ import { PendingInvitationsList } from "@/components/project/pending-invitations
 import { getProjectContext } from "@/lib/supabase/queries/project-context";
 import { getProjectMembers } from "@/lib/supabase/queries/projects";
 import { getInvitableConnections, getPendingInvitationsForProject, getPendingJoinRequests } from "@/lib/supabase/queries/social";
+import { getT } from "@/lib/i18n/server";
 
 export default async function TeamPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -18,6 +19,7 @@ export default async function TeamPage({ params }: { params: Promise<{ id: strin
     isOwner ? getPendingInvitationsForProject(id) : Promise.resolve([]),
     isOwner ? getInvitableConnections(user.id, id) : Promise.resolve([]),
   ]);
+  const t = await getT();
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -26,14 +28,14 @@ export default async function TeamPage({ params }: { params: Promise<{ id: strin
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <p className="eyebrow">
-          {members.length} {members.length === 1 ? "member" : "members"}
+          {t(members.length === 1 ? "{count} member" : "{count} members", { count: members.length })}
         </p>
         {isOwner && (
           <div className="flex gap-2">
             <Button asChild variant="outline">
               <Link href={`/projects/${id}/match`}>
                 <Sparkles />
-                AI Match
+                {t("AI Match")}
               </Link>
             </Button>
             <InviteMemberDialog projectId={id} candidates={candidates} />
@@ -43,12 +45,12 @@ export default async function TeamPage({ params }: { params: Promise<{ id: strin
       <MemberList projectId={id} members={members} currentUserId={user.id} isOwner={isOwner} />
       {isOwner && (
         <p className="mt-4 text-sm text-muted-foreground">
-          You can invite people from your connections; they join after accepting. Others can ask to join and you approve them here.
+          {t("You can invite people from your connections; they join after accepting. Others can ask to join and you approve them here.")}
         </p>
       )}
       {!isMember && (
         <p className="mt-4 text-sm text-muted-foreground">
-          Want to work on this? Use “Request to join” at the top — the owner will see your request here.
+          {t("Want to work on this? Use “Request to join” at the top — the owner will see your request here.")}
         </p>
       )}
     </div>

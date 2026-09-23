@@ -34,7 +34,7 @@ Without `AI_API_KEY` the app runs, and the AI buttons are disabled with a hint.
 
 1. Create a project at supabase.com.
 2. **Authentication → Providers → Email**: turn **off** "Confirm email" for a smooth demo (otherwise users must click a confirmation link).
-3. **SQL editor**: run `supabase/migrations/0001_init.sql`, then `supabase/migrations/0002_social.sql` (connections, join requests, bookmarks, avatar storage bucket), then `supabase/migrations/0003_invitations.sql` (project invitations + realtime notifications), then `supabase/migrations/0004_research_graph.sql` (experiments, sources, version history, timeline, forks).
+3. **SQL editor**: run `supabase/migrations/0001_init.sql`, then `supabase/migrations/0002_social.sql` (connections, join requests, bookmarks, avatar storage bucket), then `supabase/migrations/0003_invitations.sql` (project invitations + realtime notifications), then `supabase/migrations/0004_research_graph.sql` (experiments, sources, version history, timeline, forks), then `supabase/migrations/0005_messages.sql` (direct messages between connections).
 4. **SQL editor**: run `supabase/seed.sql`, then `supabase/seed_graph.sql` (experiments, sources, a fork) for demo data. (If demo accounts were created with an older seed and login fails with "Database error querying schema", run `supabase/fix_demo_users.sql` once.) Demo accounts (password `demo1234`):
    - `aigerim@demo.asterra` — student, owner of the water-pollution project
    - `daniyar@demo.asterra` — hydrologist, mentor
@@ -66,7 +66,8 @@ npx tsc --noEmit
 - Projects: create / edit / archive, members and roles, research results, editable roadmap.
 - **Research as a living graph**: an interactive map of the project (question -> hypothesis -> methodology -> experiments -> results, plus people, sources, forks and related work), a timeline of how the research evolved, version history of the core ideas, experiments with their own purpose/data/outcome, scientific sources attached to the part of the research they support, and forking a project into a new research direction.
 - Discovery: project and researcher search with filters, global search (`/search`), saved projects (`/bookmarks`).
-- Social: connection requests between researchers (`/connections`); members join a project only with consent — the owner invites a connection (invitee accepts) or a person requests to join (owner accepts on the Team tab); realtime notifications with toasts.
+- Social: connection requests between researchers (`/connections`); direct messages between connections (`/messages`, realtime, unread badge); members join a project only with consent — the owner invites a connection (invitee accepts) or a person requests to join (owner accepts on the Team tab); realtime notifications with toasts.
+- Interface languages: English, Russian and Kazakh, switched from the header (`src/lib/i18n/`). Research content (projects, results, AI output) stays in English — only the interface is translated.
 - AI: Research Roadmap, AI Match, Research Assistant — all server-side, provider behind `src/lib/ai/provider.ts`.
 
 ## 6. Demo flow

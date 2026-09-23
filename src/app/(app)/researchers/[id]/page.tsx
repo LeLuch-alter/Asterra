@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Building2, GraduationCap, Pencil } from "lucide-react";
+import { Building2, GraduationCap, MessageSquare, Pencil } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { TagList } from "@/components/shared/tag-list";
@@ -57,7 +57,17 @@ export default async function ResearcherPage({ params }: { params: Promise<{ id:
                 </Link>
               </Button>
             ) : (
-              <ConnectButton otherId={id} state={state} size="default" />
+              <>
+                <ConnectButton otherId={id} state={state} size="default" />
+                {state.kind === "connected" && (
+                  <Button asChild variant="outline">
+                    <Link href={`/messages/${id}`}>
+                      <MessageSquare />
+                      Message
+                    </Link>
+                  </Button>
+                )}
+              </>
             )}
           </div>
         </div>

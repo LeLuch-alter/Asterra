@@ -12,8 +12,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import type { Profile } from "@/types";
+import { getT } from "@/lib/i18n/server";
 
-export function UserMenu({ profile, email }: { profile: Profile; email: string }) {
+export async function UserMenu({ profile, email }: { profile: Profile; email: string }) {
+  const t = await getT();
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -24,20 +26,20 @@ export function UserMenu({ profile, email }: { profile: Profile; email: string }
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel className="font-normal">
-          <p className="truncate text-sm font-medium">{profile.full_name || "Your profile"}</p>
+          <p className="truncate text-sm font-medium">{profile.full_name || t("Your profile")}</p>
           <p className="truncate text-xs text-muted-foreground">{email}</p>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
           <Link href="/profile">
             <User />
-            Edit profile
+            {t("Edit profile")}
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
           <Link href={`/researchers/${profile.id}`}>
             <UserRound />
-            Public profile
+            {t("Public profile")}
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
@@ -45,7 +47,7 @@ export function UserMenu({ profile, email }: { profile: Profile; email: string }
           <DropdownMenuItem asChild>
             <button type="submit" className="w-full">
               <LogOut />
-              Sign out
+              {t("Sign out")}
             </button>
           </DropdownMenuItem>
         </form>

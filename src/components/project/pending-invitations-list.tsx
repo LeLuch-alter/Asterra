@@ -10,9 +10,12 @@ import { UserAvatar } from "@/components/shared/user-avatar";
 import { timeAgo } from "@/lib/format";
 import type { InvitationWithProfile } from "@/lib/supabase/queries/social";
 import { MEMBER_ROLE_LABELS } from "@/types";
+import { useLocale, useT } from "@/lib/i18n/provider";
 
 /** Invitations the owner has sent that are still waiting for an answer. */
 export function PendingInvitationsList({ invitations, projectId }: { invitations: InvitationWithProfile[]; projectId: string }) {
+  const t = useT();
+  const locale = useLocale();
   const [pending, start] = useTransition();
   if (invitations.length === 0) return null;
 
@@ -20,7 +23,7 @@ export function PendingInvitationsList({ invitations, projectId }: { invitations
     <section className="mb-8 rounded-xl border bg-card">
       <header className="border-b px-4 py-3">
         <p className="eyebrow flex items-center gap-2">
-          <Clock className="size-3.5" /> Invited · waiting for reply · {invitations.length}
+          <Clock className="size-3.5" /> {t("Invited · waiting for reply")} · {invitations.length}
         </p>
       </header>
       <ul className="divide-y">
@@ -32,7 +35,7 @@ export function PendingInvitationsList({ invitations, projectId }: { invitations
                 {i.profile.full_name}
               </Link>
               <p className="text-xs text-muted-foreground">
-                as {MEMBER_ROLE_LABELS[i.role]} · sent {timeAgo(i.created_at)}
+                {t("as {role}", { role: t(MEMBER_ROLE_LABELS[i.role]).toLowerCase() })} · {t("sent {when}", { when: timeAgo(i.created_at, locale) })}
               </p>
             </div>
             <Button
@@ -43,12 +46,12 @@ export function PendingInvitationsList({ invitations, projectId }: { invitations
                 start(async () => {
                   const res = await cancelInvitation(i.id, projectId);
                   if (!res.ok) toast.error(res.error);
-                  else toast.success("Invitation withdrawn");
+                  else toast.success(t("Invitation withdrawn"));
                 })
               }
             >
               <X />
-              Withdraw
+              {t("Withdraw")}
             </Button>
           </li>
         ))}

@@ -2,15 +2,17 @@ import Link from "next/link";
 import { Bell, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { Profile } from "@/types";
+import { getT } from "@/lib/i18n/server";
 import { Logo } from "./logo";
 import { MobileNav } from "./mobile-nav";
 import { NavLinks } from "./nav-links";
 import { NotificationsLive } from "./notifications-live";
 import { SearchBox } from "./search-box";
+import { LanguageSwitcher } from "./language-switcher";
 import { ThemeToggle } from "./theme-toggle";
 import { UserMenu } from "./user-menu";
 
-export type NavBadges = { "/notifications"?: number; "/connections"?: number };
+export type NavBadges = { "/notifications"?: number; "/connections"?: number; "/messages"?: number };
 
 type Props = {
   profile: Profile;
@@ -20,21 +22,22 @@ type Props = {
 };
 
 /** Sidebar + topbar layout for the signed-in area. */
-export function AppShell({ profile, email, badges, children }: Props) {
+export async function AppShell({ profile, email, badges, children }: Props) {
+  const t = await getT();
   return (
     <div className="flex min-h-screen">
       <NotificationsLive userId={profile.id} />
       <aside className="hidden w-64 shrink-0 flex-col border-r bg-sidebar px-4 py-5 md:flex">
         <Logo href="/dashboard" className="mb-8 px-2" />
         <NavLinks badges={badges} />
-        <div className="mt-auto grid gap-3 pt-6">
+        <div className="mt-auto grid grid-cols-1 gap-3 pt-6">
           <Button asChild className="w-full">
             <Link href="/projects/new">
               <Plus />
-              New project
+              {t("New project")}
             </Link>
           </Button>
-          <p className="eyebrow whitespace-nowrap px-2">Real research. Real people.</p>
+          <p className="eyebrow px-2 text-[0.6rem] leading-relaxed">{t("Real research. Real people.")}</p>
         </div>
       </aside>
 
@@ -44,12 +47,12 @@ export function AppShell({ profile, email, badges, children }: Props) {
           <Logo href="/dashboard" className="md:hidden" showText={false} />
           <SearchBox className="hidden w-full max-w-md md:block" />
           <div className="ml-auto flex items-center gap-1">
-            <Button asChild size="icon" variant="outline" className="md:hidden" aria-label="New project">
+            <Button asChild size="icon" variant="outline" className="md:hidden" aria-label={t("New project")}>
               <Link href="/projects/new">
                 <Plus />
               </Link>
             </Button>
-            <Button asChild variant="ghost" size="icon" className="relative" aria-label="Notifications">
+            <Button asChild variant="ghost" size="icon" className="relative" aria-label={t("Notifications")}>
               <Link href="/notifications">
                 <Bell />
                 {(badges["/notifications"] ?? 0) > 0 && (
@@ -59,6 +62,7 @@ export function AppShell({ profile, email, badges, children }: Props) {
                 )}
               </Link>
             </Button>
+            <LanguageSwitcher />
             <ThemeToggle />
             <UserMenu profile={profile} email={email} />
           </div>

@@ -20,6 +20,7 @@ export type {
 export type Connection = Tables<"connections">;
 export type JoinRequest = Tables<"project_join_requests">;
 export type Bookmark = Tables<"bookmarks">;
+export type Message = Tables<"messages">;
 export type ProjectInvitation = Tables<"project_invitations">;
 export type Experiment = Tables<"experiments">;
 export type ResearchSource = Tables<"research_sources">;

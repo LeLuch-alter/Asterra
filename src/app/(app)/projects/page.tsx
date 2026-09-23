@@ -10,6 +10,7 @@ import { requireUser } from "@/lib/supabase/server";
 import { searchProjects } from "@/lib/supabase/queries/projects";
 import { getBookmarkedIds } from "@/lib/supabase/queries/social";
 import { PROJECT_STATUS_LABELS, RESEARCH_FIELDS } from "@/types";
+import { getT } from "@/lib/i18n/server";
 
 export const metadata: Metadata = { title: "Projects" };
 
@@ -19,18 +20,19 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
   const [filters, user] = await Promise.all([searchParams, requireUser()]);
   const [projects, bookmarked] = await Promise.all([searchProjects(filters), getBookmarkedIds(user.id)]);
   const hasFilters = Boolean(filters.q || filters.field || filters.status || filters.skill);
+  const t = await getT();
 
   return (
     <>
       <PageHeader
-        eyebrow="Explore"
-        title="Research projects"
-        description="Find projects by topic, field or required skills. Save the ones you like or ask to join."
+        eyebrow={t("Explore")}
+        title={t("Research projects")}
+        description={t("Find projects by topic, field or required skills. Save the ones you like or ask to join.")}
         actions={
           <Button asChild>
             <Link href="/projects/new">
               <Plus />
-              New project
+              {t("New project")}
             </Link>
           </Button>
         }
@@ -38,16 +40,16 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
       <SearchFilterBar
         action="/projects"
         q={filters.q}
-        placeholder="Search by title, description or research question"
+        placeholder={t("Search by title, description or research question")}
         selects={[
-          { name: "field", placeholder: "All fields", value: filters.field, options: RESEARCH_FIELDS.map((f) => ({ value: f, label: f })) },
+          { name: "field", placeholder: t("All fields"), value: filters.field, options: RESEARCH_FIELDS.map((f) => ({ value: f, label: f })) },
           {
             name: "status",
-            placeholder: "Any status",
+            placeholder: t("Any status"),
             value: filters.status,
             options: Object.entries(PROJECT_STATUS_LABELS)
               .filter(([v]) => v !== "archived")
-              .map(([value, label]) => ({ value, label })),
+              .map(([value, label]) => ({ value, label: t(label) })),
           },
         ]}
       />
@@ -55,16 +57,16 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
       {projects.length === 0 ? (
         <EmptyState
           icon={FolderSearch}
-          title={hasFilters ? "No projects match these filters" : "No projects yet"}
-          description={hasFilters ? "Try a broader search." : "Be the first to create a research project."}
+          title={hasFilters ? t("No projects match these filters") : t("No projects yet")}
+          description={hasFilters ? t("Try a broader search.") : t("Be the first to create a research project.")}
           action={
             hasFilters ? (
               <Button asChild variant="outline">
-                <Link href="/projects">Clear filters</Link>
+                <Link href="/projects">{t("Clear filters")}</Link>
               </Button>
             ) : (
               <Button asChild>
-                <Link href="/projects/new">Create project</Link>
+                <Link href="/projects/new">{t("Create project")}</Link>
               </Button>
             )
           }

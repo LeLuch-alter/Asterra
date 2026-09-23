@@ -81,6 +81,9 @@ Asterra/
     │   │   ├── news/page.tsx
     │   │   ├── search/page.tsx              # global search: people + projects
     │   │   ├── connections/page.tsx         # friends: accepted / incoming / sent
+    │   │   ├── messages/
+    │   │   │   ├── page.tsx                 # inbox: one row per conversation
+    │   │   │   └── [id]/page.tsx            # thread with one connection (realtime)
     │   │   ├── bookmarks/page.tsx           # saved projects
     │   │   └── notifications/page.tsx
     │   │
@@ -101,6 +104,8 @@ Asterra/
     │   ├── members.ts             # removeMember (adding always goes through invitations / join requests)
     │   ├── results.ts             # createResult, updateResult, deleteResult
     │   ├── roadmap.ts             # saveRoadmap, updateItem, reorderItems, deleteItem
+    │   ├── messages.ts            # sendMessage, markThreadRead
+    │   ├── locale.ts              # setLocale (interface language cookie)
     │   └── notifications.ts       # markRead
     │
     ├── components/
@@ -110,6 +115,7 @@ Asterra/
     │   ├── project/               # ProjectCard, ProjectForm, ProjectHeader, MemberList, ResultCard, ResultForm
     │   ├── researcher/            # ResearcherCard, ProfileForm, SkillBadges
     │   ├── ai/                    # RoadmapEditor, MatchResultCard, AssistantPanel, AiDisclaimer
+    │   ├── messages/              # MessageThread, MessagesLive
     │   ├── news/                  # NewsCard, NewsCategoryTabs
     │   └── shared/                # SearchBar, FilterBar, EmptyState, LoadingState, ErrorState
     │
@@ -126,6 +132,11 @@ Asterra/
     │   │       ├── results.ts
     │   │       ├── roadmap.ts
     │   │       └── notifications.ts
+    │   ├── i18n/                  # interface localisation (EN / RU / KK)
+    │   │   ├── config.ts          # locales, cookie name, createTranslator()
+    │   │   ├── server.ts          # getLocale() / getT() for server components
+    │   │   ├── provider.tsx       # LocaleProvider + useT() for client components
+    │   │   └── dictionaries/      # ru.ts, kk.ts — keyed by the English source string
     │   ├── ai/                    # ALL AI logic, server-only
     │   │   ├── provider.ts        # interface AiProvider + factory by env
     │   │   ├── providers/
@@ -239,6 +250,9 @@ projects.forked_from    -- research forks; fork_project() copies idea + roadmap 
 project_invitations     (id, project_id, inviter_id, invitee_id, role, message, status, created_at, responded_at)
                          -- insert allowed only for the owner and only for accepted connections (RLS);
                          -- accept via security-definer fn accept_project_invitation()
+messages               (id, sender_id, recipient_id, body, created_at, read_at)
+                         -- insert allowed only between accepted connections (RLS + are_connected());
+                         -- only the recipient may set read_at
 storage bucket avatars  (public; each user writes only under <user_id>/)
 ```
 

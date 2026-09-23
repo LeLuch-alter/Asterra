@@ -11,6 +11,7 @@ import { requireUser } from "@/lib/supabase/server";
 import { searchProfiles } from "@/lib/supabase/queries/profiles";
 import { getConnectionStates } from "@/lib/supabase/queries/social";
 import { RESEARCH_FIELDS } from "@/types";
+import { getT } from "@/lib/i18n/server";
 
 export const metadata: Metadata = { title: "Researchers" };
 
@@ -25,36 +26,37 @@ export default async function ResearchersPage({ searchParams }: { searchParams: 
     profiles.map((p) => p.id),
   );
   const hasFilters = Boolean(f.q || f.field || f.skill || mentorsOnly);
+  const t = await getT();
 
   return (
     <>
       <PageHeader
-        eyebrow="People"
-        title="Researchers & mentors"
-        description="Find people by research field, skills or organization, and connect with them."
+        eyebrow={t("People")}
+        title={t("Researchers & mentors")}
+        description={t("Find people by research field, skills or organization, and connect with them.")}
         actions={
           <Button asChild variant={mentorsOnly ? "default" : "outline"}>
-            <Link href={mentorsOnly ? "/researchers" : "/researchers?mentors=1"}>{mentorsOnly ? "Showing mentors" : "Mentors only"}</Link>
+            <Link href={mentorsOnly ? "/researchers" : "/researchers?mentors=1"}>{mentorsOnly ? t("Showing mentors") : t("Mentors only")}</Link>
           </Button>
         }
       />
       <SearchFilterBar
         action="/researchers"
         q={f.q}
-        placeholder="Search by name, organization or bio"
+        placeholder={t("Search by name, organization or bio")}
         hidden={mentorsOnly ? { mentors: "1" } : {}}
-        selects={[{ name: "field", placeholder: "All fields", value: f.field, options: RESEARCH_FIELDS.map((x) => ({ value: x, label: x })) }]}
+        selects={[{ name: "field", placeholder: t("All fields"), value: f.field, options: RESEARCH_FIELDS.map((x) => ({ value: x, label: x })) }]}
       />
 
       {profiles.length === 0 ? (
         <EmptyState
           icon={UserSearch}
-          title={hasFilters ? "No researchers match these filters" : "No researchers yet"}
-          description="Try a different field or clear the filters."
+          title={hasFilters ? t("No researchers match these filters") : t("No researchers yet")}
+          description={t("Try a different field or clear the filters.")}
           action={
             hasFilters ? (
               <Button asChild variant="outline">
-                <Link href="/researchers">Clear filters</Link>
+                <Link href="/researchers">{t("Clear filters")}</Link>
               </Button>
             ) : undefined
           }

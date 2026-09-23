@@ -1,7 +1,9 @@
 import Link from "next/link";
+import { getT } from "@/lib/i18n/server";
 import { Button } from "@/components/ui/button";
 import { Logo } from "./logo";
 import { SearchBox } from "./search-box";
+import { LanguageSwitcher } from "./language-switcher";
 import { ThemeToggle } from "./theme-toggle";
 
 const NAV = [
@@ -11,7 +13,8 @@ const NAV = [
 ];
 
 /** Header for public pages (news home, auth). */
-export function SiteHeader({ signedIn }: { signedIn: boolean }) {
+export async function SiteHeader({ signedIn }: { signedIn: boolean }) {
+  const t = await getT();
   return (
     <header className="sticky top-0 z-30 border-b bg-background/85 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-6xl items-center gap-6 px-4 sm:px-6">
@@ -23,24 +26,25 @@ export function SiteHeader({ signedIn }: { signedIn: boolean }) {
               href={n.href}
               className="rounded-full px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             >
-              {n.label}
+              {t(n.label)}
             </Link>
           ))}
         </nav>
         <div className="ml-auto flex items-center gap-1.5">
           <SearchBox className="hidden w-56 sm:block" />
+          <LanguageSwitcher />
           <ThemeToggle />
           {signedIn ? (
             <Button asChild variant="outline">
-              <Link href="/dashboard">Dashboard</Link>
+              <Link href="/dashboard">{t("Dashboard")}</Link>
             </Button>
           ) : (
             <>
               <Button asChild variant="ghost" className="hidden sm:inline-flex">
-                <Link href="/login">Sign in</Link>
+                <Link href="/login">{t("Sign in")}</Link>
               </Button>
               <Button asChild>
-                <Link href="/register">Join</Link>
+                <Link href="/register">{t("Join")}</Link>
               </Button>
             </>
           )}

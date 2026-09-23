@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo, useRef, useState } from "react";
 import { ArrowUpRight, Maximize2, Minus, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useT } from "@/lib/i18n/provider";
 import { cn } from "@/lib/utils";
 import type { GraphEdge, GraphNode, GraphNodeKind, ResearchGraph } from "@/lib/supabase/queries/graph";
 
@@ -87,6 +88,7 @@ function edgePath(a: Placed, b: Placed) {
 }
 
 export function ResearchGraphView({ graph, projectId }: { graph: ResearchGraph; projectId: string }) {
+  const t = useT();
   const nodes = useMemo(() => layout(graph), [graph]);
   const nodeById = useMemo(() => new Map(nodes.map((n) => [n.id, n])), [nodes]);
   const [selectedId, setSelectedId] = useState<string>("project");
@@ -154,7 +156,7 @@ export function ResearchGraphView({ graph, projectId }: { graph: ResearchGraph; 
           onPointerLeave={endDrag}
           onWheel={onWheel}
           role="img"
-          aria-label="Research graph"
+          aria-label={t("Research graph")}
         >
           <g
             transform={`translate(${bounds.minX + bounds.width / 2} ${bounds.minY + bounds.height / 2}) scale(${zoom}) translate(${
@@ -183,7 +185,7 @@ export function ResearchGraphView({ graph, projectId }: { graph: ResearchGraph; 
                       className="fill-muted-foreground"
                       style={{ font: "10px var(--font-mono-face)", letterSpacing: "0.08em" }}
                     >
-                      {e.label}
+                      {t(e.label)}
                     </text>
                   )}
                 </g>
@@ -243,18 +245,18 @@ export function ResearchGraphView({ graph, projectId }: { graph: ResearchGraph; 
 
         {/* Controls */}
         <div className="absolute right-3 top-3 flex flex-col gap-1">
-          <Button variant="outline" size="icon-sm" onClick={() => setZoom((z) => Math.min(2.4, z * 1.2))} aria-label="Zoom in">
+          <Button variant="outline" size="icon-sm" onClick={() => setZoom((z) => Math.min(2.4, z * 1.2))} aria-label={t("Zoom in")}>
             <Plus />
           </Button>
-          <Button variant="outline" size="icon-sm" onClick={() => setZoom((z) => Math.max(0.35, z * 0.83))} aria-label="Zoom out">
+          <Button variant="outline" size="icon-sm" onClick={() => setZoom((z) => Math.max(0.35, z * 0.83))} aria-label={t("Zoom out")}>
             <Minus />
           </Button>
-          <Button variant="outline" size="icon-sm" onClick={reset} aria-label="Reset view">
+          <Button variant="outline" size="icon-sm" onClick={reset} aria-label={t("Reset view")}>
             <Maximize2 />
           </Button>
         </div>
 
-        <p className="eyebrow absolute bottom-3 left-4">Drag to move · scroll to zoom · click a node</p>
+        <p className="eyebrow absolute bottom-3 left-4">{t("Drag to move · scroll to zoom · click a node")}</p>
       </div>
 
       {/* Detail panel */}
@@ -263,8 +265,8 @@ export function ResearchGraphView({ graph, projectId }: { graph: ResearchGraph; 
           {selected ? (
             <>
               <div className="flex items-start justify-between gap-2">
-                <p className="eyebrow eyebrow-accent">{KIND_STYLE[selected.kind].legend}</p>
-                <button onClick={() => setSelectedId("")} aria-label="Clear selection" className="text-muted-foreground hover:text-foreground">
+                <p className="eyebrow eyebrow-accent">{t(KIND_STYLE[selected.kind].legend)}</p>
+                <button onClick={() => setSelectedId("")} aria-label={t("Clear selection")} className="text-muted-foreground hover:text-foreground">
                   <X className="size-4" />
                 </button>
               </div>
@@ -273,7 +275,7 @@ export function ResearchGraphView({ graph, projectId }: { graph: ResearchGraph; 
               {selected.body && <p className="mt-3 whitespace-pre-line text-sm text-muted-foreground">{selected.body}</p>}
               {selected.details?.map((d) => (
                 <div key={d.label} className="mt-3">
-                  <p className="eyebrow">{d.label}</p>
+                  <p className="eyebrow">{t(d.label)}</p>
                   <p className="mt-0.5 whitespace-pre-line text-sm text-muted-foreground">{d.value}</p>
                 </div>
               ))}
@@ -281,18 +283,18 @@ export function ResearchGraphView({ graph, projectId }: { graph: ResearchGraph; 
                 <Button asChild variant="outline" size="sm" className="mt-4">
                   {selected.href.startsWith("http") ? (
                     <a href={selected.href} target="_blank" rel="noreferrer">
-                      Open source <ArrowUpRight />
+                      {t("Open source")} <ArrowUpRight />
                     </a>
                   ) : (
                     <Link href={selected.href}>
-                      Open <ArrowUpRight />
+                      {t("Open")} <ArrowUpRight />
                     </Link>
                   )}
                 </Button>
               )}
               {connected.size > 0 && (
                 <div className="mt-4 border-t pt-3">
-                  <p className="eyebrow mb-2">Connected · {connected.size}</p>
+                  <p className="eyebrow mb-2">{t("Connected")} · {connected.size}</p>
                   <ul className="grid gap-1">
                     {Array.from(connected)
                       .map((id) => nodeById.get(id))
@@ -304,7 +306,7 @@ export function ResearchGraphView({ graph, projectId }: { graph: ResearchGraph; 
                             onClick={() => setSelectedId(n!.id)}
                             className="w-full truncate text-left text-sm text-muted-foreground hover:text-foreground"
                           >
-                            {KIND_STYLE[n!.kind].legend}: {n!.label}
+                            {t(KIND_STYLE[n!.kind].legend)}: {n!.label}
                           </button>
                         </li>
                       ))}
@@ -314,23 +316,23 @@ export function ResearchGraphView({ graph, projectId }: { graph: ResearchGraph; 
             </>
           ) : (
             <p className="text-sm text-muted-foreground">
-              Click any node on the map to see what it holds and how it connects to the rest of the research.
+              {t("Click any node on the map to see what it holds and how it connects to the rest of the research.")}
             </p>
           )}
         </div>
 
         <div className="rounded-xl border bg-card p-4">
-          <p className="eyebrow mb-3">Legend</p>
+          <p className="eyebrow mb-3">{t("Legend")}</p>
           <ul className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
             {usedKinds.map((k) => (
               <li key={k} className="flex items-center gap-2">
                 <span className={cn("size-2.5 rounded-full border", KIND_STYLE[k].stroke.replace("stroke-", "border-"))} />
-                {KIND_STYLE[k].legend}
+                {t(KIND_STYLE[k].legend)}
               </li>
             ))}
           </ul>
           <Button asChild variant="ghost" size="sm" className="mt-3 w-full justify-start">
-            <Link href={`/projects/${projectId}/timeline`}>See how it evolved →</Link>
+            <Link href={`/projects/${projectId}/timeline`}>{t("See how it evolved →")}</Link>
           </Button>
         </div>
       </aside>

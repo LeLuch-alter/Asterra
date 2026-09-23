@@ -14,8 +14,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { useT } from "@/lib/i18n/provider";
 
 export function ArchiveProjectButton({ projectId }: { projectId: string }) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const [pending, start] = useTransition();
 
@@ -24,19 +26,19 @@ export function ArchiveProjectButton({ projectId }: { projectId: string }) {
       <DialogTrigger asChild>
         <Button variant="ghost" size="sm" className="mt-2 justify-start text-destructive hover:text-destructive">
           <Archive />
-          Archive project
+          {t("Archive project")}
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Archive this project?</DialogTitle>
+          <DialogTitle>{t("Archive this project?")}</DialogTitle>
           <DialogDescription>
-            It will be hidden from discovery. Members can still open it, and you can change the status back later.
+            {t("It will be hidden from discovery. Members can still open it, and you can change the status back later.")}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>
-            Cancel
+            {t("Cancel")}
           </Button>
           <Button
             variant="destructive"
@@ -48,7 +50,7 @@ export function ArchiveProjectButton({ projectId }: { projectId: string }) {
               })
             }
           >
-            Archive
+            {t("Archive")}
           </Button>
         </DialogFooter>
       </DialogContent>

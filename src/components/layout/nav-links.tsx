@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, Bookmark, FolderKanban, LayoutDashboard, Newspaper, Users, UsersRound } from "lucide-react";
+import { Bell, Bookmark, FolderKanban, LayoutDashboard, MessageSquare, Newspaper, Users, UsersRound } from "lucide-react";
+import { useT } from "@/lib/i18n/provider";
 import { cn } from "@/lib/utils";
 
 export const APP_NAV = [
@@ -10,6 +11,7 @@ export const APP_NAV = [
   { href: "/projects", label: "Projects", icon: FolderKanban },
   { href: "/researchers", label: "Researchers", icon: Users },
   { href: "/connections", label: "Connections", icon: UsersRound },
+  { href: "/messages", label: "Messages", icon: MessageSquare },
   { href: "/bookmarks", label: "Saved", icon: Bookmark },
   { href: "/news", label: "Science news", icon: Newspaper },
   { href: "/notifications", label: "Notifications", icon: Bell },
@@ -19,6 +21,7 @@ type Props = { onNavigate?: () => void; badges?: Partial<Record<(typeof APP_NAV)
 
 export function NavLinks({ onNavigate, badges = {} }: Props) {
   const pathname = usePathname();
+  const t = useT();
   return (
     <nav className="flex flex-col gap-0.5">
       {APP_NAV.map(({ href, label, icon: Icon }) => {
@@ -37,7 +40,7 @@ export function NavLinks({ onNavigate, badges = {} }: Props) {
             )}
           >
             <Icon className="size-4" />
-            <span className="flex-1">{label}</span>
+            <span className="flex-1">{t(label)}</span>
             {badge > 0 && (
               <span className="rounded-full bg-primary px-1.5 font-mono text-[10px] font-semibold text-primary-foreground">
                 {badge}

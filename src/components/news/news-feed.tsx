@@ -5,6 +5,8 @@ import { getNews } from "@/lib/news/fetch-news";
 import { NEWS_CATEGORIES, type NewsCategory } from "@/lib/news/types";
 import type { NewsArticle } from "@/lib/news/types";
 import { formatDate } from "@/lib/format";
+import { getLocale, getT } from "@/lib/i18n/server";
+import type { Locale, Translator } from "@/lib/i18n/config";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -18,23 +20,23 @@ function categoryHref(basePath: string, c: string) {
   return `${basePath}?category=${encodeURIComponent(c)}`;
 }
 
-function Meta({ a }: { a: NewsArticle }) {
+function Meta({ a, t, locale }: { a: NewsArticle; t: Translator; locale: Locale }) {
   return (
     <p className="eyebrow flex flex-wrap items-center gap-x-2">
-      <span className="eyebrow-accent">{a.category}</span>
+      <span className="eyebrow-accent">{t(a.category)}</span>
       <span className="text-border">/</span>
       <span>{a.source}</span>
       <span className="text-border">/</span>
-      <time dateTime={a.published_at}>{formatDate(a.published_at)}</time>
+      <time dateTime={a.published_at}>{formatDate(a.published_at, undefined, locale)}</time>
     </p>
   );
 }
 
 /** Lead story: big serif headline + full summary. */
-function Featured({ a }: { a: NewsArticle }) {
+function Featured({ a, t, locale }: { a: NewsArticle; t: Translator; locale: Locale }) {
   return (
     <article className="grid gap-4 border-b py-8 md:grid-cols-[1fr_minmax(0,2fr)] md:gap-10">
-      <Meta a={a} />
+      <Meta a={a} t={t} locale={locale} />
       <div>
         <h2 className="display text-3xl leading-tight sm:text-4xl">
           <a href={a.url} target="_blank" rel="noreferrer" className="hover:text-primary">
@@ -43,7 +45,7 @@ function Featured({ a }: { a: NewsArticle }) {
         </h2>
         {a.summary && <p className="reading mt-4 max-w-2xl text-muted-foreground">{a.summary}</p>}
         <a href={a.url} target="_blank" rel="noreferrer" className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium hover:text-primary">
-          Read the story <ExternalLink className="size-3.5" />
+          {t("Read the story")} <ExternalLink className="size-3.5" />
         </a>
       </div>
     </article>
@@ -51,10 +53,10 @@ function Featured({ a }: { a: NewsArticle }) {
 }
 
 /** List row: readable, one article per line with a clear hierarchy. */
-function Row({ a }: { a: NewsArticle }) {
+function Row({ a, t, locale }: { a: NewsArticle; t: Translator; locale: Locale }) {
   return (
     <article className="grid gap-2 border-b py-6 md:grid-cols-[1fr_minmax(0,2fr)] md:gap-10">
-      <Meta a={a} />
+      <Meta a={a} t={t} locale={locale} />
       <div>
         <h3 className="text-xl font-semibold leading-snug tracking-tight">
           <a href={a.url} target="_blank" rel="noreferrer" className="hover:text-primary">
@@ -70,11 +72,12 @@ function Row({ a }: { a: NewsArticle }) {
 export async function NewsFeed({ category = "All", basePath }: Props) {
   const { articles, live } = await getNews(category);
   const [lead, ...rest] = articles;
+  const [t, locale] = await Promise.all([getT(), getLocale()]);
 
   return (
     <section>
       <div className="flex flex-wrap items-center justify-between gap-3 border-b pb-4">
-        <nav className="-mx-1 flex flex-wrap gap-1" aria-label="News categories">
+        <nav className="-mx-1 flex flex-wrap gap-1" aria-label={t("News categories")}>
           {NEWS_CATEGORIES.map((c) => (
             <Link
               key={c}
@@ -84,20 +87,20 @@ export async function NewsFeed({ category = "All", basePath }: Props) {
                 c === category ? "bg-foreground text-background" : "text-muted-foreground hover:bg-muted hover:text-foreground",
               )}
             >
-              {c}
+              {t(c)}
             </Link>
           ))}
         </nav>
-        <p className="eyebrow">{live ? `${articles.length} stories · live feeds` : "Demo data"}</p>
+        <p className="eyebrow">{live ? t("{count} stories · live feeds", { count: articles.length }) : t("Demo data")}</p>
       </div>
 
       {!lead ? (
-        <EmptyState icon={Newspaper} title="No articles in this category" description="Try another category." className="mt-6" />
+        <EmptyState icon={Newspaper} title={t("No articles in this category")} description={t("Try another category.")} className="mt-6" />
       ) : (
         <>
-          <Featured a={lead} />
+          <Featured a={lead} t={t} locale={locale} />
           {rest.map((a) => (
-            <Row key={a.id} a={a} />
+            <Row key={a.id} a={a} t={t} locale={locale} />
           ))}
         </>
       )}

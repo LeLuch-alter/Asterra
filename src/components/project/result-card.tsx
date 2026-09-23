@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import { formatDate } from "@/lib/format";
 import type { ResearchResultWithAuthor } from "@/types";
+import { useLocale, useT } from "@/lib/i18n/provider";
 import { ResultFormDialog } from "./result-form-dialog";
 
 type Props = {
@@ -20,16 +21,18 @@ type Props = {
 };
 
 export function ResultCard({ result, canEdit, isMember, experiments = [] }: Props) {
+  const t = useT();
+  const locale = useLocale();
   const [expanded, setExpanded] = useState(false);
   const [pending, start] = useTransition();
   const long = result.content.length > 600;
 
   function remove() {
-    if (!confirm("Delete this research result?")) return;
+    if (!confirm(t("Delete this research result?"))) return;
     start(async () => {
       const res = await deleteResult(result.id, result.project_id);
       if (!res.ok) toast.error(res.error);
-      else toast.success("Result deleted");
+      else toast.success(t("Result deleted"));
     });
   }
 
@@ -41,13 +44,13 @@ export function ResultCard({ result, canEdit, isMember, experiments = [] }: Prop
             <h3 className="font-semibold leading-snug">{result.title}</h3>
             <p className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
               <UserAvatar name={result.author.full_name} src={result.author.avatar_url} className="size-5" />
-              {result.author.full_name} · {formatDate(result.created_at)}
-              {result.updated_at !== result.created_at && " · edited"}
+              {result.author.full_name} · {formatDate(result.created_at, undefined, locale)}
+              {result.updated_at !== result.created_at && ` · ${t("edited")}`}
               {result.experiment_id && (
                 <>
-                  {" · from "}
+                  {` · ${t("from")} `}
                   <Link href={`/projects/${result.project_id}/experiments`} className="hover:underline">
-                    {experiments.find((e) => e.id === result.experiment_id)?.title ?? "an experiment"}
+                    {experiments.find((e) => e.id === result.experiment_id)?.title ?? t("an experiment")}
                   </Link>
                 </>
               )}
@@ -55,10 +58,10 @@ export function ResultCard({ result, canEdit, isMember, experiments = [] }: Prop
           </div>
           <div className="flex shrink-0 gap-1">
             {isMember && (
-              <Button asChild variant="ghost" size="sm" title="Open in AI Assistant">
+              <Button asChild variant="ghost" size="sm" title={t("Open in AI Assistant")}>
                 <Link href={`/projects/${result.project_id}/assistant?result=${result.id}`}>
                   <Sparkles />
-                  <span className="hidden sm:inline">Assistant</span>
+                  <span className="hidden sm:inline">{t("Assistant")}</span>
                 </Link>
               </Button>
             )}
@@ -69,12 +72,12 @@ export function ResultCard({ result, canEdit, isMember, experiments = [] }: Prop
                   result={result}
                   experiments={experiments}
                   trigger={
-                    <Button variant="ghost" size="icon" aria-label="Edit">
+                    <Button variant="ghost" size="icon" aria-label={t("Edit")}>
                       <Pencil />
                     </Button>
                   }
                 />
-                <Button variant="ghost" size="icon" aria-label="Delete" disabled={pending} onClick={remove}>
+                <Button variant="ghost" size="icon" aria-label={t("Delete")} disabled={pending} onClick={remove}>
                   <Trash2 />
                 </Button>
               </>
@@ -88,7 +91,7 @@ export function ResultCard({ result, canEdit, isMember, experiments = [] }: Prop
         </p>
         {long && (
           <Button variant="link" size="sm" className="mt-1 h-auto p-0" onClick={() => setExpanded((v) => !v)}>
-            {expanded ? "Show less" : "Read more"}
+            {expanded ? t("Show less") : t("Read more")}
           </Button>
         )}
       </CardContent>

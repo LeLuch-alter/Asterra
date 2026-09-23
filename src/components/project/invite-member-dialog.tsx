@@ -18,7 +18,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { NativeSelect } from "@/components/shared/native-select";
 import { UserAvatar } from "@/components/shared/user-avatar";
-import { MEMBER_ROLE_LABELS, type ProfileLite } from "@/types";
+import { MEMBER_ROLE_LABELS, USER_ROLE_LABELS, type ProfileLite } from "@/types";
+import { useT } from "@/lib/i18n/provider";
 
 type Props = {
   projectId: string;
@@ -34,6 +35,7 @@ type Props = {
  * becomes a member only after accepting.
  */
 export function InviteMemberDialog({ projectId, candidates, preselected, trigger }: Props) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
   const [role, setRole] = useState("contributor");
@@ -54,7 +56,7 @@ export function InviteMemberDialog({ projectId, candidates, preselected, trigger
         toast.error(res.error);
         return;
       }
-      toast.success(`Invitation sent to ${person.full_name}`);
+      toast.success(t("Invitation sent to {name}", { name: person.full_name }));
       setOpen(false);
       setMessage("");
     });
@@ -66,15 +68,15 @@ export function InviteMemberDialog({ projectId, candidates, preselected, trigger
         {trigger ?? (
           <Button>
             <UserPlus />
-            Invite
+            {t("Invite")}
           </Button>
         )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Invite to the project</DialogTitle>
+          <DialogTitle>{t("Invite to the project")}</DialogTitle>
           <DialogDescription>
-            You can invite people from your connections. They join only after accepting the invitation.
+            {t("You can invite people from your connections. They join only after accepting the invitation.")}
           </DialogDescription>
         </DialogHeader>
 
@@ -83,17 +85,17 @@ export function InviteMemberDialog({ projectId, candidates, preselected, trigger
             {!preselected ? (
               <div className="relative">
                 <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search your connections" className="pl-8" autoFocus />
+                <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("Search your connections")} className="pl-8" autoFocus />
               </div>
             ) : (
               <div />
             )}
-            <NativeSelect value={role} onChange={(e) => setRole(e.target.value)} aria-label="Role" className="sm:w-40">
+            <NativeSelect value={role} onChange={(e) => setRole(e.target.value)} aria-label={t("Role")} className="sm:w-40">
               {Object.entries(MEMBER_ROLE_LABELS)
                 .filter(([v]) => v !== "owner")
                 .map(([value, label]) => (
                   <option key={value} value={value}>
-                    {label}
+                    {t(label)}
                   </option>
                 ))}
             </NativeSelect>
@@ -103,7 +105,7 @@ export function InviteMemberDialog({ projectId, candidates, preselected, trigger
             rows={2}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            placeholder="Optional message: what you would like them to work on"
+            placeholder={t("Optional message: what you would like them to work on")}
             maxLength={500}
           />
 
@@ -112,14 +114,14 @@ export function InviteMemberDialog({ projectId, candidates, preselected, trigger
               <p className="p-4 text-sm text-muted-foreground">
                 {candidates.length === 0 && !preselected ? (
                   <>
-                    No connections to invite yet.{" "}
+                    {t("No connections to invite yet.")}{" "}
                     <Link href="/researchers" className="font-medium text-foreground underline-offset-4 hover:underline">
-                      Find researchers
+                      {t("Find researchers")}
                     </Link>{" "}
-                    and connect with them first.
+                    {t("and connect with them first.")}
                   </>
                 ) : (
-                  "No one matches your search."
+                  t("No one matches your search.")
                 )}
               </p>
             )}
@@ -128,11 +130,11 @@ export function InviteMemberDialog({ projectId, candidates, preselected, trigger
                 <UserAvatar name={p.full_name} src={p.avatar_url} className="size-8" />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium">{p.full_name}</p>
-                  <p className="truncate text-xs text-muted-foreground">{p.organization || p.role}</p>
+                  <p className="truncate text-xs text-muted-foreground">{p.organization || t(USER_ROLE_LABELS[p.role])}</p>
                 </div>
                 <Button size="sm" variant="secondary" disabled={pending} onClick={() => invite(p)}>
                   {pending && <Loader2 className="animate-spin" />}
-                  Invite
+                  {t("Invite")}
                 </Button>
               </div>
             ))}

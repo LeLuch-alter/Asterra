@@ -11,6 +11,7 @@ import { AiDisclaimer } from "@/components/shared/ai-disclaimer";
 import { NativeSelect } from "@/components/shared/native-select";
 import type { AssistantOperation, AssistantResponse } from "@/lib/ai/schemas";
 import type { ResearchResult } from "@/types";
+import { useT } from "@/lib/i18n/provider";
 
 const OPERATIONS: { value: AssistantOperation; label: string; icon: typeof Sparkles; hint: string }[] = [
   { value: "summarize", label: "Summarize", icon: BookOpen, hint: "Short summary with key points" },
@@ -30,6 +31,7 @@ type Props = {
 };
 
 export function AssistantPanel({ projectId, results, initialResultId, aiConfigured }: Props) {
+  const t = useT();
   const [source, setSource] = useState<string>(initialResultId ? `result:${initialResultId}` : "project");
   const [text, setText] = useState("");
   const [loading, setLoading] = useState<AssistantOperation | null>(null);
@@ -43,7 +45,7 @@ export function AssistantPanel({ projectId, results, initialResultId, aiConfigur
 
   async function run(operation: AssistantOperation) {
     const s = parseSource();
-    if (s.kind === "text" && !text.trim()) return toast.error("Paste some text first.");
+    if (s.kind === "text" && !text.trim()) return toast.error(t("Paste some text first."));
 
     setLoading(operation);
     try {
@@ -58,10 +60,10 @@ export function AssistantPanel({ projectId, results, initialResultId, aiConfigur
         }),
       });
       const data = (await res.json()) as Partial<AssistantResponse> & { error?: string };
-      if (!res.ok || !data.title || !data.content) throw new Error(data.error ?? "Request failed");
+      if (!res.ok || !data.title || !data.content) throw new Error(data.error ?? t("Request failed"));
       setResponse({ title: data.title, content: data.content, points: data.points ?? [], operation });
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Request failed");
+      toast.error(err instanceof Error ? err.message : t("Request failed"));
     } finally {
       setLoading(null);
     }
@@ -72,13 +74,13 @@ export function AssistantPanel({ projectId, results, initialResultId, aiConfigur
       <div className="grid content-start gap-4">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">What to work with</CardTitle>
+            <CardTitle className="text-base">{t("What to work with")}</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-3">
-            <NativeSelect value={source} onChange={(e) => setSource(e.target.value)} aria-label="Source">
-              <option value="project">Project description & plan</option>
+            <NativeSelect value={source} onChange={(e) => setSource(e.target.value)} aria-label={t("Source")}>
+              <option value="project">{t("Project description & plan")}</option>
               {results.length > 0 && (
-                <optgroup label="Research results">
+                <optgroup label={t("Research results")}>
                   {results.map((r) => (
                     <option key={r.id} value={`result:${r.id}`}>
                       {r.title}
@@ -86,14 +88,14 @@ export function AssistantPanel({ projectId, results, initialResultId, aiConfigur
                   ))}
                 </optgroup>
               )}
-              <option value="text">Pasted text</option>
+              <option value="text">{t("Pasted text")}</option>
             </NativeSelect>
             {source === "text" && (
               <Textarea
                 rows={10}
                 value={text}
                 onChange={(e) => setText(e.target.value)}
-                placeholder="Paste a section of your research text here…"
+                placeholder={t("Paste a section of your research text here…")}
               />
             )}
           </CardContent>
@@ -101,7 +103,7 @@ export function AssistantPanel({ projectId, results, initialResultId, aiConfigur
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Actions</CardTitle>
+            <CardTitle className="text-base">{t("Actions")}</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-2">
             {OPERATIONS.map(({ value, label, icon: Icon, hint }) => (
@@ -114,12 +116,12 @@ export function AssistantPanel({ projectId, results, initialResultId, aiConfigur
               >
                 {loading === value ? <Loader2 className="animate-spin" /> : <Icon className="text-primary" />}
                 <span className="text-left">
-                  <span className="block font-medium">{label}</span>
-                  <span className="block text-xs font-normal text-muted-foreground">{hint}</span>
+                  <span className="block font-medium">{t(label)}</span>
+                  <span className="block text-xs font-normal text-muted-foreground">{t(hint)}</span>
                 </span>
               </Button>
             ))}
-            {!aiConfigured && <p className="text-xs text-muted-foreground">AI_API_KEY is not configured on this server.</p>}
+            {!aiConfigured && <p className="text-xs text-muted-foreground">{t("AI_API_KEY is not configured on this server.")}</p>}
           </CardContent>
         </Card>
       </div>
@@ -139,9 +141,9 @@ export function AssistantPanel({ projectId, results, initialResultId, aiConfigur
         {!loading && !response && (
           <div className="flex h-full min-h-64 flex-col items-center justify-center rounded-xl border border-dashed p-8 text-center">
             <Sparkles className="mb-3 size-8 text-primary" />
-            <p className="font-medium">Choose a source and an action</p>
+            <p className="font-medium">{t("Choose a source and an action")}</p>
             <p className="mt-1 max-w-sm text-sm text-muted-foreground">
-              The assistant works only with your project content and labels everything as AI assistance.
+              {t("The assistant works only with your project content and labels everything as AI assistance.")}
             </p>
           </div>
         )}

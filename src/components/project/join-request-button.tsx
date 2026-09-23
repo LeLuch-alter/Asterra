@@ -16,11 +16,13 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import type { JoinRequestStatus } from "@/types";
+import { useT } from "@/lib/i18n/provider";
 
 type Props = { projectId: string; projectTitle: string; existing: JoinRequestStatus | null };
 
 /** "Request to join" for non-members; shows pending state and lets the user cancel. */
 export function JoinRequestButton({ projectId, projectTitle, existing }: Props) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const [message, setMessage] = useState("");
   const [pending, start] = useTransition();
@@ -34,12 +36,12 @@ export function JoinRequestButton({ projectId, projectTitle, existing }: Props) 
           start(async () => {
             const res = await cancelJoinRequest(projectId);
             if (!res.ok) toast.error(res.error);
-            else toast.success("Request cancelled");
+            else toast.success(t("Request cancelled"));
           })
         }
       >
         {pending ? <Loader2 className="animate-spin" /> : <Clock />}
-        Request pending
+        {t("Request pending")}
       </Button>
     );
   }
@@ -47,7 +49,7 @@ export function JoinRequestButton({ projectId, projectTitle, existing }: Props) 
   if (existing === "declined") {
     return (
       <Button variant="outline" disabled>
-        Request declined
+        {t("Request declined")}
       </Button>
     );
   }
@@ -57,18 +59,18 @@ export function JoinRequestButton({ projectId, projectTitle, existing }: Props) 
       <DialogTrigger asChild>
         <Button>
           <Send />
-          Request to join
+          {t("Request to join")}
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Join “{projectTitle}”</DialogTitle>
-          <DialogDescription>Tell the project owner briefly why you want to join and what you can contribute.</DialogDescription>
+          <DialogTitle>{t("Join “{title}”", { title: projectTitle })}</DialogTitle>
+          <DialogDescription>{t("Tell the project owner briefly why you want to join and what you can contribute.")}</DialogDescription>
         </DialogHeader>
-        <Textarea rows={4} value={message} onChange={(e) => setMessage(e.target.value)} placeholder="I have experience with…" maxLength={500} />
+        <Textarea rows={4} value={message} onChange={(e) => setMessage(e.target.value)} placeholder={t("I have experience with…")} maxLength={500} />
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>
-            Cancel
+            {t("Cancel")}
           </Button>
           <Button
             disabled={pending}
@@ -79,13 +81,13 @@ export function JoinRequestButton({ projectId, projectTitle, existing }: Props) 
                   toast.error(res.error);
                   return;
                 }
-                toast.success("Request sent to the project owner");
+                toast.success(t("Request sent to the project owner"));
                 setOpen(false);
               })
             }
           >
             {pending && <Loader2 className="animate-spin" />}
-            Send request
+            {t("Send request")}
           </Button>
         </DialogFooter>
       </DialogContent>

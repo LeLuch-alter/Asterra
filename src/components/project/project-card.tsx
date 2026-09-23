@@ -4,18 +4,20 @@ import { TagList } from "@/components/shared/tag-list";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import { timeAgo } from "@/lib/format";
 import { PROJECT_STATUS_LABELS, type ProjectSummary } from "@/types";
+import { getLocale, getT } from "@/lib/i18n/server";
 import { BookmarkButton } from "./bookmark-button";
 
 type Props = { project: ProjectSummary; bookmarked?: boolean };
 
-export function ProjectCard({ project, bookmarked }: Props) {
+export async function ProjectCard({ project, bookmarked }: Props) {
+  const [t, locale] = await Promise.all([getT(), getLocale()]);
   return (
     <article className="flex h-full flex-col rounded-xl border bg-card p-5 transition-colors hover:border-foreground/30">
       <div className="flex items-start justify-between gap-3">
         <p className="eyebrow eyebrow-accent flex flex-wrap gap-x-2">
-          {project.research_field || "Project"}
+          {project.research_field || t("Project")}
           <span className="text-border">/</span>
-          <span className="text-muted-foreground">{PROJECT_STATUS_LABELS[project.status]}</span>
+          <span className="text-muted-foreground">{t(PROJECT_STATUS_LABELS[project.status])}</span>
         </p>
         {bookmarked !== undefined && <BookmarkButton projectId={project.id} bookmarked={bookmarked} label={false} />}
       </div>
@@ -24,7 +26,7 @@ export function ProjectCard({ project, bookmarked }: Props) {
           {project.title}
         </Link>
       </h3>
-      <p className="mt-2 line-clamp-3 flex-1 text-sm text-muted-foreground">{project.description || "No description yet."}</p>
+      <p className="mt-2 line-clamp-3 flex-1 text-sm text-muted-foreground">{project.description || t("No description yet.")}</p>
       {project.required_skills.length > 0 && (
         <div className="mt-4">
           <TagList tags={project.required_skills} max={4} variant="outline" />
@@ -40,7 +42,7 @@ export function ProjectCard({ project, bookmarked }: Props) {
             <Users className="size-3.5" />
             {project.member_count}
           </span>
-          <span>{timeAgo(project.updated_at)}</span>
+          <span>{timeAgo(project.updated_at, locale)}</span>
         </span>
       </footer>
     </article>

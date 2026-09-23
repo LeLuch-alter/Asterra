@@ -6,11 +6,13 @@ import { toast } from "sonner";
 import { removeAvatar, uploadAvatar } from "@/actions/profile";
 import { Button } from "@/components/ui/button";
 import { UserAvatar } from "@/components/shared/user-avatar";
+import { useT } from "@/lib/i18n/provider";
 
 type Props = { name: string; avatarUrl: string | null };
 
 /** Avatar picker with instant preview; uploads to Supabase Storage via a Server Action. */
 export function AvatarUpload({ name, avatarUrl }: Props) {
+  const t = useT();
   const inputRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string | null>(avatarUrl);
   const [pending, start] = useTransition();
@@ -27,7 +29,7 @@ export function AvatarUpload({ name, avatarUrl }: Props) {
         toast.error(res.error);
         setPreview(avatarUrl);
       } else {
-        toast.success("Photo updated");
+        toast.success(t("Photo updated"));
         setPreview(res.data.url);
       }
       URL.revokeObjectURL(localUrl);
@@ -55,7 +57,7 @@ export function AvatarUpload({ name, avatarUrl }: Props) {
         <div className="flex gap-2">
           <Button type="button" variant="outline" size="sm" disabled={pending} onClick={() => inputRef.current?.click()}>
             <Camera />
-            {preview ? "Change photo" : "Upload photo"}
+            {preview ? t("Change photo") : t("Upload photo")}
           </Button>
           {preview && (
             <Button
@@ -72,11 +74,11 @@ export function AvatarUpload({ name, avatarUrl }: Props) {
               }
             >
               <Trash2 />
-              Remove
+              {t("Remove")}
             </Button>
           )}
         </div>
-        <p className="text-xs text-muted-foreground">PNG, JPEG or WebP, up to 2 MB.</p>
+        <p className="text-xs text-muted-foreground">{t("PNG, JPEG or WebP, up to 2 MB.")}</p>
       </div>
     </div>
   );

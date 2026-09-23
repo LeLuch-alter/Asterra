@@ -15,6 +15,7 @@ import { UserAvatar } from "@/components/shared/user-avatar";
 import { InviteMemberDialog } from "@/components/project/invite-member-dialog";
 import { ConnectButton } from "@/components/researcher/connect-button";
 import { USER_ROLE_LABELS, type ConnectionState, type MatchCandidate } from "@/types";
+import { useT } from "@/lib/i18n/provider";
 
 type Mode = "collaborators" | "mentors";
 
@@ -28,6 +29,7 @@ type Props = {
 };
 
 export function MatchPanel({ projectId, isOwner, memberIds, connections, aiConfigured }: Props) {
+  const t = useT();
   const [mode, setMode] = useState<Mode>("collaborators");
   const [matches, setMatches] = useState<MatchCandidate[] | null>(null);
   const [loading, setLoading] = useState(false);
@@ -43,10 +45,10 @@ export function MatchPanel({ projectId, isOwner, memberIds, connections, aiConfi
         body: JSON.stringify({ projectId, lookingFor: next }),
       });
       const data = (await res.json()) as { matches?: MatchCandidate[]; error?: string };
-      if (!res.ok || !data.matches) throw new Error(data.error ?? "Matching failed");
+      if (!res.ok || !data.matches) throw new Error(data.error ?? t("Matching failed"));
       setMatches(data.matches);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Matching failed");
+      toast.error(err instanceof Error ? err.message : t("Matching failed"));
       setMatches([]);
     } finally {
       setLoading(false);
@@ -58,26 +60,26 @@ export function MatchPanel({ projectId, isOwner, memberIds, connections, aiConfi
       <Card>
         <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="font-medium">Who are you looking for?</p>
+            <p className="font-medium">{t("Who are you looking for?")}</p>
             <p className="text-sm text-muted-foreground">
-              AI compares the project with researcher profiles: fields, skills, interests and experience.
+              {t("AI compares the project with researcher profiles: fields, skills, interests and experience.")}
             </p>
           </div>
           <div className="flex gap-2">
             <Button variant={mode === "collaborators" ? "default" : "outline"} disabled={loading || !aiConfigured} onClick={() => run("collaborators")}>
               {loading && mode === "collaborators" ? <Loader2 className="animate-spin" /> : <Users />}
-              Collaborators
+              {t("Collaborators")}
             </Button>
             <Button variant={mode === "mentors" ? "default" : "outline"} disabled={loading || !aiConfigured} onClick={() => run("mentors")}>
               {loading && mode === "mentors" ? <Loader2 className="animate-spin" /> : <GraduationCap />}
-              Mentors
+              {t("Mentors")}
             </Button>
           </div>
         </CardContent>
       </Card>
 
       {!aiConfigured && (
-        <p className="text-sm text-muted-foreground">AI is not configured on this server (AI_API_KEY is missing).</p>
+        <p className="text-sm text-muted-foreground">{t("AI is not configured on this server (AI_API_KEY is missing).")}</p>
       )}
 
       {loading && (
@@ -91,8 +93,8 @@ export function MatchPanel({ projectId, isOwner, memberIds, connections, aiConfi
       {matches && matches.length === 0 && !loading && (
         <EmptyState
           icon={Sparkles}
-          title="No suitable matches found"
-          description="Try adding more detail to the project description and required skills, or check back when more researchers join."
+          title={t("No suitable matches found")}
+          description={t("Try adding more detail to the project description and required skills, or check back when more researchers join.")}
         />
       )}
 
@@ -109,11 +111,11 @@ export function MatchPanel({ projectId, isOwner, memberIds, connections, aiConfi
                       {m.candidate.full_name}
                     </Link>
                     <p className="text-xs text-muted-foreground">
-                      {USER_ROLE_LABELS[m.candidate.role]}
+                      {t(USER_ROLE_LABELS[m.candidate.role])}
                       {m.candidate.organization && ` · ${m.candidate.organization}`}
                     </p>
                     <Badge className="mt-2" variant="secondary">
-                      ~{m.score}% fit
+                      {t("~{score}% fit", { score: m.score })}
                     </Badge>
                   </div>
                 </div>
@@ -124,12 +126,12 @@ export function MatchPanel({ projectId, isOwner, memberIds, connections, aiConfi
                     <div className="mt-3 grid gap-1.5">
                       {m.overlapping_fields.length > 0 && (
                         <p className="text-xs text-muted-foreground">
-                          <span className="font-medium text-foreground">Field overlap:</span> {m.overlapping_fields.join(", ")}
+                          <span className="font-medium text-foreground">{t("Field overlap:")}</span> {m.overlapping_fields.join(", ")}
                         </p>
                       )}
                       {m.overlapping_skills.length > 0 && (
                         <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-                          <span className="font-medium text-foreground">Skills:</span>
+                          <span className="font-medium text-foreground">{t("Skills:")}</span>
                           <TagList tags={m.candidate.skills} max={6} variant="outline" highlight={m.overlapping_skills} />
                         </div>
                       )}
@@ -157,7 +159,7 @@ export function MatchPanel({ projectId, isOwner, memberIds, connections, aiConfi
                             trigger={
                               <Button size="sm" variant="outline">
                                 <UserPlus />
-                                Invite to project
+                                {t("Invite to project")}
                               </Button>
                             }
                           />
@@ -167,7 +169,7 @@ export function MatchPanel({ projectId, isOwner, memberIds, connections, aiConfi
                         <>
                           <ConnectButton otherId={m.candidate.id} state={state} />
                           {state.kind !== "connected" && (
-                            <p className="max-w-40 text-[11px] leading-snug text-muted-foreground">Connect first, then invite to the project.</p>
+                            <p className="max-w-40 text-[11px] leading-snug text-muted-foreground">{t("Connect first, then invite to the project.")}</p>
                           )}
                         </>
                       );

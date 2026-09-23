@@ -161,7 +161,8 @@
 @layer components {
   /* Serif display headings (Instrument Serif) */
   .display {
-    font-family: var(--font-display);
+    /* Instrument Serif has no Cyrillic, so Russian/Kazakh headings fall back to a serif. */
+    font-family: var(--font-display), Georgia, "Times New Roman", serif;
     font-weight: 400;
     letter-spacing: -0.015em;
     line-height: 1.02;

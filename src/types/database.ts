@@ -104,6 +104,15 @@ type NotificationRow = {
   created_at: string;
 };
 
+type MessageRow = {
+  id: string;
+  sender_id: string;
+  recipient_id: string;
+  body: string;
+  created_at: string;
+  read_at: string | null;
+};
+
 export type ConnectionStatus = "pending" | "accepted";
 export type JoinRequestStatus = "pending" | "accepted" | "declined";
 
@@ -269,6 +278,7 @@ export type Database = {
         Insertable<JoinRequestRow, "id" | "message" | "status" | "created_at" | "responded_at">
       >;
       bookmarks: Table<BookmarkRow, Insertable<BookmarkRow, "created_at">>;
+      messages: Table<MessageRow, Insertable<MessageRow, "id" | "created_at" | "read_at">>;
       experiments: Table<
         ExperimentRow,
         Insertable<
@@ -295,6 +305,7 @@ export type Database = {
       is_project_member: { Args: { p_project_id: string }; Returns: boolean };
       is_project_owner: { Args: { p_project_id: string }; Returns: boolean };
       accept_project_invitation: { Args: { p_invitation_id: string }; Returns: undefined };
+      are_connected: { Args: { a: string; b: string }; Returns: boolean };
       fork_project: { Args: { p_project_id: string; p_title: string }; Returns: string };
     };
     Enums: {

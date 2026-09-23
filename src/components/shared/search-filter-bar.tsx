@@ -1,6 +1,9 @@
+"use client";
+
 import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useT } from "@/lib/i18n/provider";
 import { NativeSelect } from "./native-select";
 
 export type FilterOption = { value: string; label: string };
@@ -19,7 +22,8 @@ type Props = {
  * GET form that writes filters into the URL; the page reads searchParams on the server.
  * No client state needed.
  */
-export function SearchFilterBar({ action, q, placeholder = "Search…", selects = [], hidden = {} }: Props) {
+export function SearchFilterBar({ action, q, placeholder, selects = [], hidden = {} }: Props) {
+  const t = useT();
   return (
     <form action={action} className="mb-6 flex flex-col gap-2 sm:flex-row">
       {Object.entries(hidden).map(([k, v]) => (
@@ -27,7 +31,7 @@ export function SearchFilterBar({ action, q, placeholder = "Search…", selects 
       ))}
       <div className="relative flex-1">
         <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-        <Input name="q" defaultValue={q} placeholder={placeholder} className="pl-8" />
+        <Input name="q" defaultValue={q} placeholder={placeholder ?? t("Search…")} className="pl-8" />
       </div>
       {selects.map((s) => (
         <NativeSelect key={s.name} name={s.name} defaultValue={s.value ?? ""} className="sm:w-48">
@@ -40,7 +44,7 @@ export function SearchFilterBar({ action, q, placeholder = "Search…", selects 
         </NativeSelect>
       ))}
       <Button type="submit" variant="secondary">
-        Apply
+        {t("Apply")}
       </Button>
     </form>
   );

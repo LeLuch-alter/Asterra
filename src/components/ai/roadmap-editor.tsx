@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { AiDisclaimer } from "@/components/shared/ai-disclaimer";
 import { NativeSelect } from "@/components/shared/native-select";
+import { useT } from "@/lib/i18n/provider";
 import { cn } from "@/lib/utils";
 import type { RoadmapItem, RoadmapStatus } from "@/types";
 
@@ -21,6 +22,7 @@ const STATUS_LABEL: Record<RoadmapStatus, string> = { todo: "To do", in_progress
 type Props = { projectId: string; items: RoadmapItem[]; canEdit: boolean; aiConfigured: boolean };
 
 export function RoadmapEditor({ projectId, items, canEdit, aiConfigured }: Props) {
+  const t = useT();
   const router = useRouter();
   const [draft, setDraft] = useState<Draft[] | null>(null);
   const [generating, setGenerating] = useState(false);
@@ -35,10 +37,10 @@ export function RoadmapEditor({ projectId, items, canEdit, aiConfigured }: Props
         body: JSON.stringify({ projectId }),
       });
       const data = (await res.json()) as { steps?: Draft[]; error?: string };
-      if (!res.ok || !data.steps) throw new Error(data.error ?? "Generation failed");
+      if (!res.ok || !data.steps) throw new Error(data.error ?? t("Generation failed"));
       setDraft(data.steps);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Generation failed");
+      toast.error(err instanceof Error ? err.message : t("Generation failed"));
     } finally {
       setGenerating(false);
     }
@@ -46,14 +48,14 @@ export function RoadmapEditor({ projectId, items, canEdit, aiConfigured }: Props
 
   function saveDraft() {
     if (!draft) return;
-    if (items.length > 0 && !confirm("This will replace the current roadmap. Continue?")) return;
+    if (items.length > 0 && !confirm(t("This will replace the current roadmap. Continue?"))) return;
     start(async () => {
       const res = await saveRoadmap(projectId, draft);
       if (!res.ok) {
         toast.error(res.error);
         return;
       }
-      toast.success("Roadmap saved");
+      toast.success(t("Roadmap saved"));
       setDraft(null);
       router.refresh();
     });
@@ -63,7 +65,7 @@ export function RoadmapEditor({ projectId, items, canEdit, aiConfigured }: Props
     start(async () => {
       const res = await fn();
       if (!res.ok) {
-        toast.error(res.error ?? "Something went wrong");
+        toast.error(res.error ?? t("Something went wrong"));
         return;
       }
       if (success) toast.success(success);
@@ -87,14 +89,14 @@ export function RoadmapEditor({ projectId, items, canEdit, aiConfigured }: Props
         <Card>
           <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="font-medium">Generate a roadmap with AI</p>
+              <p className="font-medium">{t("Generate a roadmap with AI")}</p>
               <p className="text-sm text-muted-foreground">
-                Uses the project description, question and hypothesis. You review and edit everything before saving.
+                {t("Uses the project description, question and hypothesis. You review and edit everything before saving.")}
               </p>
             </div>
-            <Button onClick={generate} disabled={generating || !aiConfigured} title={aiConfigured ? undefined : "AI_API_KEY is not configured"}>
+            <Button onClick={generate} disabled={generating || !aiConfigured} title={aiConfigured ? undefined : t("AI_API_KEY is not configured")}>
               {generating ? <Loader2 className="animate-spin" /> : <Sparkles />}
-              {generating ? "Generating…" : items.length ? "Regenerate" : "Generate roadmap"}
+              {generating ? t("Generating…") : items.length ? t("Regenerate") : t("Generate roadmap")}
             </Button>
           </CardContent>
         </Card>
@@ -104,7 +106,7 @@ export function RoadmapEditor({ projectId, items, canEdit, aiConfigured }: Props
         <Card className="border-primary/40">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Sparkles className="size-4 text-primary" /> AI draft — edit, then save
+              <Sparkles className="size-4 text-primary" /> {t("AI draft — edit, then save")}
             </CardTitle>
             <AiDisclaimer />
           </CardHeader>
@@ -117,7 +119,7 @@ export function RoadmapEditor({ projectId, items, canEdit, aiConfigured }: Props
                     value={step.title}
                     onChange={(e) => setDraft(draft.map((s, j) => (j === i ? { ...s, title: e.target.value } : s)))}
                   />
-                  <Button variant="ghost" size="icon" aria-label="Remove step" onClick={() => setDraft(draft.filter((_, j) => j !== i))}>
+                  <Button variant="ghost" size="icon" aria-label={t("Remove step")} onClick={() => setDraft(draft.filter((_, j) => j !== i))}>
                     <X />
                   </Button>
                 </div>
@@ -131,11 +133,11 @@ export function RoadmapEditor({ projectId, items, canEdit, aiConfigured }: Props
             ))}
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setDraft(null)}>
-                Discard
+                {t("Discard")}
               </Button>
               <Button onClick={saveDraft} disabled={pending || draft.length === 0}>
                 {pending && <Loader2 className="animate-spin" />}
-                Save roadmap
+                {t("Save roadmap")}
               </Button>
             </div>
           </CardContent>
@@ -145,10 +147,10 @@ export function RoadmapEditor({ projectId, items, canEdit, aiConfigured }: Props
       <div>
         <div className="mb-3 flex items-center justify-between">
           <h2 className="font-semibold">
-            Steps{" "}
+            {t("Steps")}{" "}
             {items.length > 0 && (
               <span className="text-sm font-normal text-muted-foreground">
-                · {doneCount}/{items.length} done
+                · {t("{done}/{total} done", { done: doneCount, total: items.length })}
               </span>
             )}
           </h2>
@@ -157,7 +159,7 @@ export function RoadmapEditor({ projectId, items, canEdit, aiConfigured }: Props
 
         {items.length === 0 ? (
           <p className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">
-            No roadmap yet. {canEdit ? "Generate one with AI or add steps manually." : ""}
+            {t("No roadmap yet.")} {canEdit ? t("Generate one with AI or add steps manually.") : ""}
           </p>
         ) : (
           <ol className="grid gap-3">
@@ -171,8 +173,8 @@ export function RoadmapEditor({ projectId, items, canEdit, aiConfigured }: Props
                 pending={pending}
                 onMove={(dir) => move(i, dir)}
                 onStatus={(status) => run(() => updateRoadmapItem(item.id, projectId, { status }))}
-                onSave={(data) => run(() => updateRoadmapItem(item.id, projectId, data), "Step updated")}
-                onDelete={() => run(() => deleteRoadmapItem(item.id, projectId), "Step deleted")}
+                onSave={(data) => run(() => updateRoadmapItem(item.id, projectId, data), t("Step updated"))}
+                onDelete={() => run(() => deleteRoadmapItem(item.id, projectId), t("Step deleted"))}
               />
             ))}
           </ol>
@@ -195,6 +197,7 @@ type RowProps = {
 };
 
 function RoadmapRow({ item, index, total, canEdit, pending, onMove, onStatus, onSave, onDelete }: RowProps) {
+  const t = useT();
   const [editing, setEditing] = useState(false);
   const [title, setTitle] = useState(item.title);
   const [description, setDescription] = useState(item.description);
@@ -206,7 +209,7 @@ function RoadmapRow({ item, index, total, canEdit, pending, onMove, onStatus, on
         type="button"
         disabled={!canEdit || pending}
         onClick={() => onStatus(done ? "todo" : "done")}
-        aria-label={done ? "Mark as not done" : "Mark as done"}
+        aria-label={done ? t("Mark as not done") : t("Mark as done")}
         className={cn(
           "mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full border text-xs font-semibold transition-colors",
           done ? "border-primary bg-primary text-primary-foreground" : "text-muted-foreground",
@@ -229,10 +232,10 @@ function RoadmapRow({ item, index, total, canEdit, pending, onMove, onStatus, on
                   setEditing(false);
                 }}
               >
-                Save
+                {t("Save")}
               </Button>
               <Button size="sm" variant="ghost" onClick={() => setEditing(false)}>
-                Cancel
+                {t("Cancel")}
               </Button>
             </div>
           </div>
@@ -250,25 +253,25 @@ function RoadmapRow({ item, index, total, canEdit, pending, onMove, onStatus, on
             value={item.status}
             onChange={(e) => onStatus(e.target.value as RoadmapStatus)}
             className="h-8 w-32 text-xs"
-            aria-label="Status"
+            aria-label={t("Status")}
           >
             {Object.entries(STATUS_LABEL).map(([v, l]) => (
               <option key={v} value={v}>
-                {l}
+                {t(l)}
               </option>
             ))}
           </NativeSelect>
           <div className="flex">
-            <Button variant="ghost" size="icon" className="size-8" disabled={pending || index === 0} onClick={() => onMove(-1)} aria-label="Move up">
+            <Button variant="ghost" size="icon" className="size-8" disabled={pending || index === 0} onClick={() => onMove(-1)} aria-label={t("Move up")}>
               <ArrowUp />
             </Button>
-            <Button variant="ghost" size="icon" className="size-8" disabled={pending || index === total - 1} onClick={() => onMove(1)} aria-label="Move down">
+            <Button variant="ghost" size="icon" className="size-8" disabled={pending || index === total - 1} onClick={() => onMove(1)} aria-label={t("Move down")}>
               <ArrowDown />
             </Button>
-            <Button variant="ghost" size="icon" className="size-8" onClick={() => setEditing(true)} aria-label="Edit">
+            <Button variant="ghost" size="icon" className="size-8" onClick={() => setEditing(true)} aria-label={t("Edit")}>
               <Pencil />
             </Button>
-            <Button variant="ghost" size="icon" className="size-8" disabled={pending} onClick={onDelete} aria-label="Delete">
+            <Button variant="ghost" size="icon" className="size-8" disabled={pending} onClick={onDelete} aria-label={t("Delete")}>
               <Trash2 />
             </Button>
           </div>
@@ -279,6 +282,7 @@ function RoadmapRow({ item, index, total, canEdit, pending, onMove, onStatus, on
 }
 
 function AddStepButton({ projectId, onDone }: { projectId: string; onDone: () => void }) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -288,15 +292,15 @@ function AddStepButton({ projectId, onDone }: { projectId: string; onDone: () =>
     return (
       <Button variant="outline" size="sm" onClick={() => setOpen(true)}>
         <Plus />
-        Add step
+        {t("Add step")}
       </Button>
     );
   }
 
   return (
     <div className="grid w-full gap-2 rounded-lg border p-3 sm:max-w-md">
-      <Input placeholder="Step title" value={title} onChange={(e) => setTitle(e.target.value)} autoFocus />
-      <Textarea placeholder="Description (optional)" rows={2} value={description} onChange={(e) => setDescription(e.target.value)} />
+      <Input placeholder={t("Step title")} value={title} onChange={(e) => setTitle(e.target.value)} autoFocus />
+      <Textarea placeholder={t("Description (optional)")} rows={2} value={description} onChange={(e) => setDescription(e.target.value)} />
       <div className="flex gap-2">
         <Button
           size="sm"
@@ -316,10 +320,10 @@ function AddStepButton({ projectId, onDone }: { projectId: string; onDone: () =>
           }
         >
           {pending && <Loader2 className="animate-spin" />}
-          Add
+          {t("Add")}
         </Button>
         <Button size="sm" variant="ghost" onClick={() => setOpen(false)}>
-          Cancel
+          {t("Cancel")}
         </Button>
       </div>
     </div>

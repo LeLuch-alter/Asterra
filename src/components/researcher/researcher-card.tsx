@@ -4,10 +4,12 @@ import { Badge } from "@/components/ui/badge";
 import { TagList } from "@/components/shared/tag-list";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import { USER_ROLE_LABELS, type Profile } from "@/types";
+import { getT } from "@/lib/i18n/server";
 
 type Props = { profile: Profile; action?: React.ReactNode };
 
-export function ResearcherCard({ profile, action }: Props) {
+export async function ResearcherCard({ profile, action }: Props) {
+  const t = await getT();
   return (
     <article className="flex h-full gap-4 rounded-xl border bg-card p-5 transition-colors hover:border-foreground/30">
       <UserAvatar name={profile.full_name} src={profile.avatar_url} className="size-12" />
@@ -18,7 +20,7 @@ export function ResearcherCard({ profile, action }: Props) {
               {profile.full_name}
             </Link>
             <p className="truncate text-xs text-muted-foreground">
-              {USER_ROLE_LABELS[profile.role]}
+              {t(USER_ROLE_LABELS[profile.role])}
               {profile.organization && ` · ${profile.organization}`}
             </p>
           </div>
@@ -27,7 +29,7 @@ export function ResearcherCard({ profile, action }: Props) {
         {profile.is_mentor && (
           <Badge className="mt-2">
             <GraduationCap />
-            Mentor
+            {t("Mentor")}
           </Badge>
         )}
         {profile.research_fields.length > 0 && (

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useT } from "@/lib/i18n/provider";
 import { cn } from "@/lib/utils";
 
 const TABS = [
@@ -19,6 +20,7 @@ const TABS = [
 
 export function ProjectNav({ projectId, isMember }: { projectId: string; isMember: boolean }) {
   const pathname = usePathname();
+  const translate = useT();
   const base = `/projects/${projectId}`;
   return (
     <nav className="-mb-px flex gap-1 overflow-x-auto border-b">
@@ -34,7 +36,7 @@ export function ProjectNav({ projectId, isMember }: { projectId: string; isMembe
               active ? "border-primary text-foreground" : "border-transparent text-muted-foreground hover:text-foreground",
             )}
           >
-            {t.label}
+            {translate(t.label)}
           </Link>
         );
       })}
