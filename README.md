@@ -1,77 +1,317 @@
 # Asterra
 
-AI-powered scientific collaboration platform — a student demonstration project.
-"GitHub for science": create research projects, collaborate, discover researchers and mentors, and use AI to plan and improve research.
+### AI-powered scientific collaboration platform
 
-Stack: Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS 4 · shadcn/ui · Supabase · Gemini/OpenAI · Vercel.
+**Asterra** is a student-built platform designed to make scientific research more collaborative, structured, and accessible.
 
-Docs: [ARCHITECTURE.md](ARCHITECTURE.md) · [ROADMAP.md](ROADMAP.md) · [INSTRUMENTS.md](INSTRUMENTS.md) · [CLAUDE.md](CLAUDE.md)
+The idea behind Asterra is simple: **“GitHub for science.”**
 
-## 1. Local setup
+Researchers and students can create research projects, document their ideas and experiments, collaborate with other researchers, discover mentors, share research results, and explore scientific projects created by the community.
 
-```bash
-npm install
-cp .env.example .env.local   # then fill in the values
-npm run dev                  # http://localhost:3000
+Asterra also uses AI to assist researchers throughout the research process — from planning a research roadmap to finding potential collaborators and reviewing research notes.
+
+> **AI assists the research process, but does not replace scientific judgment or validate research results.**
+
+---
+
+## 🎯 What problem does Asterra solve?
+
+Scientific research can involve many disconnected tools:
+
+* documents for research notes;
+* spreadsheets for experiments;
+* separate platforms for communication;
+* social networks for finding collaborators;
+* websites for discovering scientific papers;
+* task managers for planning research.
+
+Asterra brings these activities together into a single research-oriented platform.
+
+Instead of simply storing a finished paper, Asterra treats research as a **living process** that evolves over time.
+
+---
+
+## 🔬 Research as a Living Graph
+
+One of Asterra's main concepts is representing research as a connected graph.
+
+A project can contain:
+
+**Research Question → Hypothesis → Methodology → Experiments → Results**
+
+The graph can also include:
+
+* researchers;
+* mentors;
+* scientific sources;
+* related research;
+* project forks;
+* different research directions;
+* experiment history.
+
+This allows users to see not only the final result, but also **how the research developed**.
+
+---
+
+## 🤖 AI-Assisted Research
+
+Asterra integrates AI into several parts of the research workflow.
+
+### AI Research Roadmap
+
+AI can help transform a research idea into a structured roadmap containing possible research stages and directions.
+
+Researchers can then edit and adapt the generated roadmap instead of treating it as a final answer.
+
+### AI Match
+
+AI analyzes research interests and project information to help discover potentially relevant collaborators and mentors.
+
+### Research Assistant
+
+The AI assistant can help researchers:
+
+* summarize research notes;
+* review written material;
+* identify possible gaps;
+* organize information;
+* suggest improvements.
+
+AI functionality is implemented server-side and supports multiple providers.
+
+---
+
+## 👥 Collaboration
+
+Asterra is designed around collaboration between researchers.
+
+Users can:
+
+* create researcher profiles;
+* discover other researchers;
+* connect with people who share similar interests;
+* invite collaborators to projects;
+* request to join research projects;
+* communicate through direct messages;
+* receive real-time notifications.
+
+Project membership is based on consent: project owners control invitations and join requests.
+
+---
+
+## 🧪 Research Projects
+
+Each project can contain its own research workspace.
+
+Users can:
+
+* create and edit projects;
+* define research questions;
+* create hypotheses;
+* build research roadmaps;
+* document experiments;
+* add research results;
+* attach scientific sources;
+* track the evolution of ideas;
+* view project history;
+* fork projects into new research directions.
+
+This makes the project more than a simple document — it becomes a structured representation of the research process.
+
+---
+
+## 📰 Scientific Discovery
+
+Asterra also provides a science-news feed organized by research fields:
+
+* Computer Science
+* Biology
+* Physics
+* Chemistry
+* Astronomy
+* Environmental Science
+* Medicine
+
+Users can discover scientific news and explore research projects through the platform.
+
+Projects and researchers can also be discovered through search and filtering.
+
+---
+
+## 🌐 Social Features
+
+Asterra combines research tools with social collaboration features.
+
+Users can:
+
+* follow their research interests through project discovery;
+* send connection requests;
+* find potential collaborators;
+* exchange direct messages;
+* bookmark interesting projects;
+* receive real-time notifications.
+
+The goal is to create a network where students, researchers, and mentors can find each other around shared scientific interests.
+
+---
+
+## 🌍 Multilingual Interface
+
+The interface is available in:
+
+* 🇬🇧 English
+* 🇷🇺 Russian
+* 🇰🇿 Kazakh
+
+The platform interface is translated, while research content and AI-generated research assistance remain in English to maintain consistency for scientific communication.
+
+---
+
+## 🏗️ Technology Stack
+
+Asterra is built using modern web technologies:
+
+| Technology                | Purpose                                        |
+| ------------------------- | ---------------------------------------------- |
+| **Next.js 16**            | Full-stack React framework                     |
+| **React 19**              | User interface                                 |
+| **TypeScript**            | Type-safe development                          |
+| **Tailwind CSS 4**        | Styling                                        |
+| **shadcn/ui**             | UI components                                  |
+| **Supabase**              | Authentication, database, storage and realtime |
+| **Gemini / OpenAI / xAI** | AI functionality                               |
+| **Vercel**                | Deployment                                     |
+
+The application uses the **Next.js App Router** architecture.
+
+---
+
+## 🗺️ Project Architecture
+
+Asterra is divided into several major systems:
+
+```text
+Asterra
+│
+├── Authentication
+│   └── Supabase Auth
+│
+├── Research Projects
+│   ├── Questions
+│   ├── Hypotheses
+│   ├── Methodology
+│   ├── Experiments
+│   ├── Results
+│   └── Sources
+│
+├── Research Graph
+│   ├── Timeline
+│   ├── Version History
+│   └── Project Forks
+│
+├── Collaboration
+│   ├── Researchers
+│   ├── Connections
+│   ├── Mentors
+│   ├── Invitations
+│   └── Join Requests
+│
+├── Communication
+│   ├── Direct Messages
+│   └── Notifications
+│
+├── Discovery
+│   ├── Projects
+│   ├── Researchers
+│   ├── Search
+│   └── Bookmarks
+│
+├── Science News
+│   └── RSS / News API
+│
+└── AI
+    ├── Research Roadmap
+    ├── AI Match
+    └── Research Assistant
 ```
 
-### Environment variables (`.env.local`)
+---
 
-| Variable | Where to get it | Required |
-|---|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase → Project Settings → API → Project URL | yes |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase → Project Settings → API → anon public key | yes |
-| `AI_PROVIDER` | `gemini` (default), `openai` or `grok` (xAI) | no |
-| `AI_API_KEY` | Google AI Studio, OpenAI or console.x.ai | for AI features |
-| `AI_MODEL` | e.g. `gemini-3.6-flash`, `gpt-4o-mini`, `grok-4-fast` (per-provider default if empty) | no |
-| `NEWS_API_KEY` | newsapi.org (free tier, ~100 req/day) | no |
-| `NEWS_FEED_URLS` | comma-separated RSS feeds; nothing configured = demo news | no |
-| `NEXT_PUBLIC_SITE_URL` | `http://localhost:3000` locally, your Vercel URL in prod | no |
+## 🚀 Example Research Workflow
 
-Without `AI_API_KEY` the app runs, and the AI buttons are disabled with a hint.
+A typical Asterra workflow looks like this:
 
-## 2. Supabase setup
-
-1. Create a project at supabase.com.
-2. **Authentication → Providers → Email**: turn **off** "Confirm email" for a smooth demo (otherwise users must click a confirmation link).
-3. **SQL editor**: run `supabase/migrations/0001_init.sql`, then `supabase/migrations/0002_social.sql` (connections, join requests, bookmarks, avatar storage bucket), then `supabase/migrations/0003_invitations.sql` (project invitations + realtime notifications), then `supabase/migrations/0004_research_graph.sql` (experiments, sources, version history, timeline, forks), then `supabase/migrations/0005_messages.sql` (direct messages between connections).
-4. **SQL editor**: run `supabase/seed.sql`, then `supabase/seed_graph.sql` (experiments, sources, a fork) for demo data. (If demo accounts were created with an older seed and login fails with "Database error querying schema", run `supabase/fix_demo_users.sql` once.) Demo accounts (password `demo1234`):
-   - `aigerim@demo.asterra` — student, owner of the water-pollution project
-   - `daniyar@demo.asterra` — hydrologist, mentor
-   - `elena@demo.asterra` — molecular biologist, mentor
-   - `marat@demo.asterra` — physics student
-   - `sofia@demo.asterra` — data scientist, mentor
-   - `timur@demo.asterra` — biology student
-5. (Optional) regenerate DB types: `npx supabase gen types typescript --project-id <ref> > src/types/database.ts`
-
-## 3. Deploy to Vercel
-
-1. Push the repo to GitHub, import it in Vercel.
-2. Add the same environment variables in Vercel → Settings → Environment Variables.
-3. Set `NEXT_PUBLIC_SITE_URL` to the Vercel URL and add `https://<your-app>.vercel.app/auth/callback` to Supabase → Authentication → URL Configuration → Redirect URLs.
-
-## 4. Scripts
-
-```bash
-npm run dev     # dev server
-npm run build   # production build (also type-checks)
-npm run lint    # eslint
-npx tsc --noEmit
+```text
+Create a research idea
+        ↓
+Create a project
+        ↓
+Define the research question
+        ↓
+Generate an AI-assisted roadmap
+        ↓
+Edit and refine the roadmap
+        ↓
+Find collaborators / mentors
+        ↓
+Design experiments
+        ↓
+Document results
+        ↓
+Use AI to review research notes
+        ↓
+Track research evolution
+        ↓
+Share and discover the project
 ```
 
-## 5. Features
+---
 
-- Public home page with a science-news feed split by field (one RSS feed per field: CS, Biology, Physics, Chemistry, Astronomy, Environmental Science, Medicine), light and dark themes, 3D hero scene.
-- Auth, researcher profiles with avatar upload (Supabase Storage bucket `avatars`).
-- Projects: create / edit / archive, members and roles, research results, editable roadmap.
-- **Research as a living graph**: an interactive map of the project (question -> hypothesis -> methodology -> experiments -> results, plus people, sources, forks and related work), a timeline of how the research evolved, version history of the core ideas, experiments with their own purpose/data/outcome, scientific sources attached to the part of the research they support, and forking a project into a new research direction.
-- Discovery: project and researcher search with filters, global search (`/search`), saved projects (`/bookmarks`).
-- Social: connection requests between researchers (`/connections`); direct messages between connections (`/messages`, realtime, unread badge); members join a project only with consent — the owner invites a connection (invitee accepts) or a person requests to join (owner accepts on the Team tab); realtime notifications with toasts.
-- Interface languages: English, Russian and Kazakh, switched from the header (`src/lib/i18n/`). Research content (projects, results, AI output) stays in English — only the interface is translated.
-- AI: Research Roadmap, AI Match, Research Assistant — all server-side, provider behind `src/lib/ai/provider.ts`.
+## 🎓 Project Purpose
 
-## 6. Demo flow
+Asterra is currently a **student demonstration project** exploring how modern web technologies and AI can be applied to scientific collaboration.
 
-Register → complete profile → create project → **Roadmap** tab: generate with AI, edit, save → **AI Match**: find collaborators, add one → **Results**: add a research note → **AI Assistant**: summarize / review it → **Science news** → project is discoverable on **Projects**.
+The project focuses on combining:
 
-AI output is always labelled as assistance, not scientific validation.
+**Scientific research + collaboration + knowledge management + AI**
+
+into one platform.
+
+It is not intended to replace scientific institutions, peer review, academic supervision, or professional research infrastructure.
+
+Instead, Asterra demonstrates how a digital platform could help students and researchers **organize research, find collaborators, document experiments, and explore new research directions.**
+
+---
+
+## 📚 Documentation
+
+Additional technical documentation is available in the repository:
+
+* `ARCHITECTURE.md` — system architecture
+* `ROADMAP.md` — development roadmap
+* `INSTRUMENTS.md` — project tools and components
+* `CLAUDE.md` — AI-assisted development instructions
+
+---
+
+## 📌 Current Status
+
+**Asterra is a student demonstration project.**
+
+The platform currently demonstrates:
+
+* authentication and researcher profiles;
+* research project management;
+* collaborative research workflows;
+* research graphs;
+* experiments and sources;
+* project version history;
+* project forking;
+* researcher discovery;
+* connections and messaging;
+* real-time notifications;
+* science news;
+* multilingual interface;
+* AI-assisted research tools.
+
+The project is actively designed as an exploration of what an **AI-native scientific collaboration platform** could look like.
